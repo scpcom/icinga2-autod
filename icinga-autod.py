@@ -312,7 +312,7 @@ def handle_netscan(cidr):
 
     print "Starting scan for "+cidr
 
-    ret, output, err = exec_command('nmap -sn -sP {0}'.format(cidr))
+    ret, output, err = exec_command('nmap -sn -sP -T3 {0}'.format(cidr))
     if ret and err:
         sys.stderr.write('There was a problem performing the scan - is the network reachable?')
 	sys.exit(1)
