@@ -289,9 +289,33 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     if hostvars: 
 	host_entry += '  {0}\n'.format(hostvars)
 
+    syshttp = 0
+    ret, output, err = exec_command('nmap -p80 {0}'.format(ip))
+    if ret and err:
+        syshttp = 0
+    else:
+        syshttp = parse_nmap_port_scan(output)
+
+    if syshttp == 1:
+        host_entry += '  vars.http_vhosts["http"] = {\n'
+        host_entry += '    http_uri = "/"\n'
+        host_entry += '  }\n'
+
     host_entry += '}\n'
 
     return host_entry
+
+def parse_nmap_port_scan(data):
+    data_list = data.split('\n')
+    match = '80/tcp '
+    ret = 0
+    for line in data_list:
+        if match in line and line is not None:
+            line = line[len(match):].split(' ')[0]
+            if line == 'open':
+                ret = 1
+
+    return ret
 	
 def compile_hvars(sysdesc):
     sys_descriptors = {
