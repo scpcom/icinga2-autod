@@ -138,7 +138,7 @@ def main():
             community = data['community']
 
 	    hostname = output[0].strip('"')
-            sysdesc = output[1].strip('"')
+            sysdesc = output[1].strip('"').strip('\r')
             sysobject = output[-2].strip('"') 
 
         except:
@@ -296,6 +296,8 @@ def compile_hvars(sysdesc):
     }
 
     hostvars = ''
+    if sysdesc != '':
+        hostvars += 'vars.description = "' + sysdesc + '"'+'\n  '
 
     '''Append hostvars based on sysDescr matches'''
     for match, var in sys_descriptors.iteritems():
