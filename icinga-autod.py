@@ -139,7 +139,7 @@ def main():
 
 	    hostname = output[0].strip('"')
             sysdesc = output[1].strip('"')
-            sysobject = output[2].strip('"') 
+            sysobject = output[-2].strip('"') 
 
         except:
             community = 'unknown'
