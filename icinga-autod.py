@@ -320,6 +320,9 @@ def parse_nmap_port_scan(data):
 def compile_hvars(sysdesc):
     sys_descriptors = {
 	'RouterOS': 'vars.network_mikrotik = "true"', 
+	'Baseline Switch': 'vars.network_switch = "true"',
+	'OfficeConnect': 'vars.network_switch = "true"',
+	'ProCurve': 'vars.network_switch = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
     }
