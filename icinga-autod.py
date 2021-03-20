@@ -95,7 +95,7 @@ def main():
     credential['community'] = args.communities.split(',')
 
     #Hostname and sysDescr OIDs
-    oids = '1.3.6.1.2.1.1.5.0 1.3.6.1.2.1.1.1.0 1.3.6.1.2.1.1.2.0'
+    oids = '1.3.6.1.2.1.1.5.0 1.3.6.1.2.1.1.1.0 1.3.6.1.2.1.1.6.0 1.3.6.1.2.1.1.2.0'
 
     #Scan the network
     hosts = handle_netscan(cidr)
@@ -139,12 +139,14 @@ def main():
 
 	    hostname = output[0].strip('"')
             sysdesc = output[1].strip('"').strip('\r')
+            syslocation = output[-3].strip('"')
             sysobject = output[-2].strip('"') 
 
         except:
             community = 'unknown'
             output = ''
 
+            syslocation = ''
             sysdesc = ''
             sysobject = ''
 	
@@ -156,7 +158,7 @@ def main():
 	    vendor = None
 	    
 	all_hosts[host] = { 
-	    'community': community, 'snmp_version': credential['version'], 'hostname': hostname, 'sysdesc': sysdesc, 'vendor' : vendor }
+	    'community': community, 'snmp_version': credential['version'], 'hostname': hostname, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
 	if debug:
 	    print host, sysobject, all_hosts[host]
@@ -257,13 +259,16 @@ def compile_hosts(data, location):
 
     for ip, hdata in data.iteritems():
 	hostvars = compile_hvars(hdata['sysdesc'])
+	hostlocation = location
+	if hdata['syslocation'] != '':
+		hostlocation = hdata['syslocation']
 
 	if not hdata['hostname']:
 	    hostname = ip
 	else:
 	    hostname = hdata['hostname']
 
-	host_entry = build_host_entry(hostname, str(ip), location, hdata['vendor'], str(hostvars))
+	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
 	f.write(host_entry)
 
