@@ -295,6 +295,8 @@ def compile_hosts(data, location):
 	#print str(ifcount) + ' interfaces'
 	if ifcount > 0:
 	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
+	if hdata['community'] != '':
+	    hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
 	f.write(host_entry)
