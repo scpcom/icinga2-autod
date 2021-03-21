@@ -258,7 +258,28 @@ def compile_hosts(data, location):
     f = open(filename, 'w')
 
     for ip, hdata in data.iteritems():
-	hostvars = compile_hvars(hdata['sysdesc'])
+	have_snmp = 0
+	if hdata['community'] != '' and  hdata['community'] != 'unknown':
+	    have_snmp = 1
+
+	devdesc = ''
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1')
+	else:
+	    data = ''
+
+	try:
+            output = data['output'].split('\n')
+            for line in output:
+                if '.3.6.1.2.1.25.3.2.1.3.1' in line:
+                    line = line.split('.')[-1]
+                    devdesc = ': '.join(line.split(': ')[1:]).strip('"')
+                    #print devdesc
+
+	except:
+            output = ''
+
+	hostvars = compile_hvars(hdata['sysdesc'], devdesc)
 	hostlocation = location
 	if hdata['syslocation'] != '':
 		hostlocation = hdata['syslocation']
@@ -271,7 +292,10 @@ def compile_hosts(data, location):
 	ifcount = 0
 	is_comware = "false"
 	port_filter = ['CPU', 'TRK', 'NULL', 'Vlan']
-	data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+	else:
+	    data = ''
 
 	try:
             output = data['output'].split('\n')
@@ -368,7 +392,7 @@ def parse_nmap_port_scan(data):
 
     return ret
 	
-def compile_hvars(sysdesc):
+def compile_hvars(sysdesc, devdesc):
     sys_descriptors = {
 	'RouterOS': 'vars.network_mikrotik = "true"', 
 	'Baseline Switch': 'vars.network_switch = "true"',
@@ -378,15 +402,27 @@ def compile_hvars(sysdesc):
 	'Windows':'vars.os = "Windows"',
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
     }
+    dev_descriptors = {
+        'Laserjet': 'vars.network_printer = "true"',
+        'LaserJet': 'vars.network_printer = "true"',
+        'Officejet': 'vars.network_printer = "true"',
+        'OfficeJet': 'vars.network_printer = "true"',
+    }
 
     hostvars = ''
     if sysdesc != '':
         hostvars += 'vars.description = "' + sysdesc + '"'+'\n  '
+    if devdesc != '':
+        hostvars += 'vars.device_description = "' + devdesc + '"'+'\n  '
 
     '''Append hostvars based on sysDescr matches'''
     for match, var in sys_descriptors.iteritems():
 	if match in sysdesc:
 	    hostvars += var +'\n  '
+    '''Append hostvars based on devDescr matches'''
+    for match, var in dev_descriptors.iteritems():
+        if match in devdesc:
+            hostvars += var +'\n  '
 
     return hostvars
 
