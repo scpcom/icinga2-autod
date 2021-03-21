@@ -351,6 +351,7 @@ def compile_hvars(sysdesc):
 	'OfficeConnect': 'vars.network_switch = "true"',
 	'ProCurve': 'vars.network_switch = "true"',
 	'Linux':'vars.os = "Linux"', 
+	'Windows':'vars.os = "Windows"',
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
     }
 
