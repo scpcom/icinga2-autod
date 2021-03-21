@@ -326,6 +326,9 @@ def compile_hosts(data, location):
 	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
 	if hdata['community'] != '' and  hdata['community'] != 'unknown':
 	    hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
+	    hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
+	    if hdata['snmp_version'] == '2c':
+	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
 	f.write(host_entry)
