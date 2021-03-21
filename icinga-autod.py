@@ -308,9 +308,21 @@ def compile_hosts(data, location):
 def build_host_entry(hostname, ip, location, vendor, hostvars):
     host_entry = ( 'object Host "%s" {\n'
 		   '  import "generic-host"\n'
-		   '  address = "%s"\n'
-		 ) % (hostname, ip)
+		 ) % (hostname)
 
+    linevars = hostvars.split('\n')
+    is_switch = "false"
+    ifcount = 0
+    for line in linevars:
+        if 'vars.network_switch = ' in line:
+            is_switch = line.split(' = ')[1].strip('"')
+    for line in linevars:
+        if 'vars.network_ports = ' in line:
+            ifcount = line.split(' = ')[1]
+    if is_switch == "true" and ifcount > 7:
+            host_entry += '  import "int-{0}-ports-template"\n'.format(ifcount)
+
+    host_entry += '  address = "{0}"\n'.format(ip)
     if location:
 	host_entry += '  vars.location = "{0}"\n'.format(location)
     if vendor:
