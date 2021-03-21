@@ -269,6 +269,7 @@ def compile_hosts(data, location):
 	    hostname = hdata['hostname']
 
 	ifcount = 0
+	is_comware = "false"
 	port_filter = ['CPU', 'TRK', 'NULL', 'Vlan']
 	data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
 
@@ -288,11 +289,15 @@ def compile_hosts(data, location):
                     if ifskip == 0 and ifno > ifcount:
                         ifcount = ifno
                         #print str(ifno) + ': ' + ifna
+                    if ifna.startswith('GigabitEthernet1/0/'):
+                        is_comware = "true"
 
 	except:
             output = ''
 
 	#print str(ifcount) + ' interfaces'
+	if is_comware == "true":
+	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
 	if ifcount > 0:
 	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
 	if hdata['community'] != '':
@@ -311,15 +316,20 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 		 ) % (hostname)
 
     linevars = hostvars.split('\n')
+    is_comware = "false"
     is_switch = "false"
     ifcount = 0
     for line in linevars:
+        if 'vars.network_comware = ' in line:
+            is_comware = line.split(' = ')[1].strip('"')
         if 'vars.network_switch = ' in line:
             is_switch = line.split(' = ')[1].strip('"')
-    for line in linevars:
         if 'vars.network_ports = ' in line:
             ifcount = line.split(' = ')[1]
     if is_switch == "true" and ifcount > 7:
+        if is_comware == "true":
+            host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
+        else:
             host_entry += '  import "int-{0}-ports-template"\n'.format(ifcount)
 
     host_entry += '  address = "{0}"\n'.format(ip)
