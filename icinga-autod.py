@@ -300,7 +300,7 @@ def compile_hosts(data, location):
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
 	if ifcount > 0:
 	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
-	if hdata['community'] != '':
+	if hdata['community'] != '' and  hdata['community'] != 'unknown':
 	    hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
