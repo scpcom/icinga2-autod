@@ -350,6 +350,9 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             is_switch = line.split(' = ')[1].strip('"')
         if 'vars.network_ports = ' in line:
             ifcount = line.split(' = ')[1]
+    if is_comware == "true" and is_switch != "true":
+        is_switch = "true"
+        hostvars += 'vars.network_switch = "' + is_switch + '"' +'\n  '
     if is_switch == "true" and ifcount > 7:
         if is_comware == "true":
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
