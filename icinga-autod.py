@@ -268,6 +268,33 @@ def compile_hosts(data, location):
 	else:
 	    hostname = hdata['hostname']
 
+	ifcount = 0
+	port_filter = ['CPU', 'TRK', 'NULL', 'Vlan']
+	data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+
+	try:
+            output = data['output'].split('\n')
+            for line in output:
+                if '.3.6.1.2.1.2.2.1.2.' in line:
+                    line = line.split('.')[-1]
+                    ifno = int(line.split(' ') [0])
+                    ifna = ': '.join(line.split(': ')[1:]).strip('"')
+
+                    ifskip = 0
+                    for prefix in port_filter:
+                        if ifna.startswith(prefix):
+                            ifskip = 1
+
+                    if ifskip == 0 and ifno > ifcount:
+                        ifcount = ifno
+                        #print str(ifno) + ': ' + ifna
+
+	except:
+            output = ''
+
+	#print str(ifcount) + ' interfaces'
+	if ifcount > 0:
+	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
 	f.write(host_entry)
@@ -410,6 +437,30 @@ def snmpget_by_cl(host, credential, oid, timeout=1, retries=0):
 		break	
 	    except Exception, e:
 		print "There was a problem appending data to the dict " + str(e)
+
+    return data
+
+def snmpwalk_by_cl(host, version, community, oid, timeout=1, retries=0):
+    '''
+    Slightly modified snmpwalk method from net-snmp
+    '''
+
+    data = {}
+
+    cmd = "snmpwalk -v %s -c %s %s %s" % (
+            version, community, host, oid)
+
+    returncode, output, err = exec_command(cmd)
+
+    #print returncode, output, err
+    if returncode and err:
+        data['error'] = str(err)
+    else:
+        try:
+            data['output'] = output
+            data['community'] = community
+        except Exception, e:
+            print "There was a problem appending data to the dict " + str(e)
 
     return data
 
