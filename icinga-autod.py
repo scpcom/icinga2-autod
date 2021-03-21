@@ -319,6 +319,72 @@ def compile_hosts(data, location):
 	except:
             output = ''
 
+	chassisid = ''
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0')
+	else:
+	    data = ''
+
+	try:
+            output = data['output'].split('\n')
+            for line in output:
+                if '.3.6.1.2.1.17.1.1.0' in line:
+                    line = line.split('.')[-1]
+                    chassisid = ': '.join(line.split(': ')[1:]).strip('"')
+                    chassisid = ':'.join(chassisid.split(' ')[:-1])
+                    #print chassisid
+
+	except:
+	    output = ''
+
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
+	else:
+	    data = ''
+
+	try:
+            output = data['output'].split('\n')
+            print str(ip) + ' ' + hdata['hostname'] + ' Port IDs'
+            if chassisid != '':
+                print chassisid + ' chassis'
+            for line in output:
+                if '.3.6.1.2.1.2.2.1.6.' in line:
+                    line = line.split('.')[-1]
+                    ifno = line.split(' = ') [0]
+                    if int(ifno) < 10:
+                        ifno = '0'+ifno
+                    maca = ': '.join(line.split(': ')[1:]).strip('"')
+                    maca = ':'.join(maca.split(' ')[:-1])
+                    print maca + ' port ' + ifno
+
+	except:
+	    output = ''
+
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
+	else:
+	    data = ''
+
+	try:
+            output = data['output'].split('\n')
+            print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
+            for line in output:
+                if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
+                    ifno = ': '.join(line.split(': ')[1:]).strip('"')
+                    line = line.split(' = ')[0]
+                    line = line.split('.')[14:]
+                    if int(ifno) < 10:
+                        ifno = '0'+ifno
+                    maca = ''
+                    for c in line:
+                        if maca != '':
+                             maca = maca + ':'
+                        maca = maca + '{:02X}'.format(int(c))
+                    print maca + ' on port ' + ifno
+
+	except:
+	    output = ''
+
 	#print str(ifcount) + ' interfaces'
 	if is_comware == "true":
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
@@ -514,7 +580,7 @@ def snmpwalk_by_cl(host, version, community, oid, timeout=1, retries=0):
 
     data = {}
 
-    cmd = "snmpwalk -v %s -c %s %s %s" % (
+    cmd = "snmpwalk -v %s -Cc -c %s %s %s" % (
             version, community, host, oid)
 
     returncode, output, err = exec_command(cmd)
