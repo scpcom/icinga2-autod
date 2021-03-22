@@ -289,9 +289,10 @@ def compile_hosts(data, location):
 	else:
 	    hostname = hdata['hostname']
 
+	iffirst = 999999
 	ifcount = 0
 	is_comware = "false"
-	port_filter = ['CPU', 'TRK', 'NULL', 'Vlan']
+	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan']
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
 	else:
@@ -310,6 +311,8 @@ def compile_hosts(data, location):
                         if ifna.startswith(prefix):
                             ifskip = 1
 
+                    if ifskip == 0 and ifno < iffirst:
+                        iffirst = ifno
                     if ifskip == 0 and ifno > ifcount:
                         ifcount = ifno
                         #print str(ifno) + ': ' + ifna
@@ -360,6 +363,7 @@ def compile_hosts(data, location):
 	except:
 	    output = ''
 
+	have_mact = 0
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
 	else:
@@ -367,12 +371,39 @@ def compile_hosts(data, location):
 
 	try:
             output = data['output'].split('\n')
-            print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
+            if len(output) > 1:
+                print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
                     ifno = ': '.join(line.split(': ')[1:]).strip('"')
                     line = line.split(' = ')[0]
                     line = line.split('.')[14:]
+                    if int(ifno) < 10:
+                        ifno = '0'+ifno
+                    maca = ''
+                    for c in line:
+                        if maca != '':
+                             maca = maca + ':'
+                        maca = maca + '{:02X}'.format(int(c))
+                    have_mact = 1
+                    print maca + ' on port ' + ifno
+
+	except:
+	    output = ''
+
+	if have_snmp == 1 and have_mact == 0:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.4.3.1.2')
+	else:
+	    data = ''
+
+	try:
+            output = data['output'].split('\n')
+            print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
+            for line in output:
+                if '.3.6.1.2.1.17.4.3.1.2.' in line:
+                    ifno = ': '.join(line.split(': ')[1:]).strip('"')
+                    line = line.split(' = ')[0]
+                    line = line.split('.')[11:]
                     if int(ifno) < 10:
                         ifno = '0'+ifno
                     maca = ''
@@ -389,6 +420,8 @@ def compile_hosts(data, location):
 	if is_comware == "true":
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
 	if ifcount > 0:
+	    if iffirst < ifcount:
+	        ifcount = ifcount - iffirst + 1
 	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
 	if hdata['community'] != '' and  hdata['community'] != 'unknown':
 	    hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
@@ -468,8 +501,10 @@ def compile_hvars(sysdesc, devdesc):
     sys_descriptors = {
 	'RouterOS': 'vars.network_mikrotik = "true"', 
 	'Baseline Switch': 'vars.network_switch = "true"',
+	'Comware Platform': 'vars.network_switch = "true"',
 	'OfficeConnect': 'vars.network_switch = "true"',
 	'ProCurve': 'vars.network_switch = "true"',
+	'PROCURVE': 'vars.network_switch = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'Windows':'vars.os = "Windows"',
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
