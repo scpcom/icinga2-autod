@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 import csv
+import os
+import re
 macp_filename = 'discovered_hosts_mac_ports.csv'
-mact_filename = 'hosts_mac_table.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
+mact_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_table\.csv', f)]
+mact_reader = list()
+for mact_filename in mact_filenames:
+    with open(mact_filename) as mact_file:
+        mact_reader += list( csv.reader(mact_file, delimiter=';') )
 macf_f = open(macf_filename, 'w')
 with open(macp_filename) as macp_file:
-    with open(mact_filename) as mact_file:
         macp_reader = list( csv.reader(macp_file, delimiter=';') )
-        mact_reader = list( csv.reader(mact_file, delimiter=';') )
         prev_maca = ''
         for macp in macp_reader:
             macp_hostname = macp[3].split('.')[0]
