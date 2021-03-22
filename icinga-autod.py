@@ -126,9 +126,12 @@ def main():
 	'''
 
         hostname = ''
+        hostmac = ''
 
         if ',' in host:
             hostname, host = host.split(',')
+        if ';' in host:
+            host, hostmac = host.split(';')
 
         data = snmpget_by_cl(host, credential, oids)
 
@@ -158,7 +161,7 @@ def main():
 	    vendor = None
 	    
 	all_hosts[host] = { 
-	    'community': community, 'snmp_version': credential['version'], 'hostname': hostname, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
+	    'community': community, 'snmp_version': credential['version'], 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
 	if debug:
 	    print host, sysobject, all_hosts[host]
@@ -340,6 +343,11 @@ def compile_hosts(data, location):
 	except:
 	    output = ''
 
+	if hdata['hostmac'] != '':
+	    print str(ip) + ' ' + hdata['hostname'] + ' Port IDs'
+	    #print hdata['hostmac'] + ' arp'
+            print hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname']
+
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
 	else:
@@ -347,7 +355,8 @@ def compile_hosts(data, location):
 
 	try:
             output = data['output'].split('\n')
-            print str(ip) + ' ' + hdata['hostname'] + ' Port IDs'
+            if hdata['hostmac'] == '':
+                print str(ip) + ' ' + hdata['hostname'] + ' Port IDs'
             if chassisid != '':
                 print chassisid + ' chassis'
             for line in output:
@@ -359,7 +368,8 @@ def compile_hosts(data, location):
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
                     maca = ':'.join(maca.split(' ')[:-1])
                     if maca and maca != '':
-                        print maca + ' port ' + ifno
+                        #print maca + ' port ' + ifno
+                        print maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname']
 
 	except:
 	    output = ''
@@ -387,7 +397,8 @@ def compile_hosts(data, location):
                              maca = maca + ':'
                         maca = maca + '{:02X}'.format(int(c))
                     have_mact = 1
-                    print maca + ' on port ' + ifno
+                    #print maca + ' on port ' + ifno
+                    print maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname']
 
 	except:
 	    output = ''
@@ -413,7 +424,8 @@ def compile_hosts(data, location):
                         if maca != '':
                              maca = maca + ':'
                         maca = maca + '{:02X}'.format(int(c))
-                    print maca + ' on port ' + ifno
+                    #print maca + ' on port ' + ifno
+                    print maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname']
 
 	except:
 	    output = ''
@@ -430,6 +442,8 @@ def compile_hosts(data, location):
 	    hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
 	    if hdata['snmp_version'] == '2c':
 	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
+        if hdata['hostmac'] != '':
+            hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
 	f.write(host_entry)
@@ -557,11 +571,17 @@ def handle_netscan(cidr):
 	   sys.exit(1)
 
 def parse_nmap_scan(data):
-    data_list = data.split('\n')
     match = 'Nmap scan report for '
+    mac_match = 'MAC Address: '
+    data_list = data.split('\n')
+    prev_line = ''
     hosts = []
     for line in data_list:
         if match in line and line is not None:
+            if prev_line != '':
+                hosts.append(prev_line)
+                prev_line = ''
+
             line = line[len(match):].strip(' ')
 
             if '(' in line:
@@ -571,7 +591,18 @@ def parse_nmap_scan(data):
 
                 line = ','.join(line.split(' '))
 
-            hosts.append(line)
+            prev_line = line
+            #hosts.append(line)
+        if mac_match in line and line is not None:
+            maca = line[len(mac_match):].split(' ')[0]
+            if prev_line != '':
+                print prev_line+';'+maca
+                hosts.append(prev_line+';'+maca)
+                prev_line = ''
+
+    if prev_line != '':
+        hosts.append(prev_line)
+        prev_line = ''
 
     return hosts
 
