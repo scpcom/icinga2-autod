@@ -258,7 +258,12 @@ def compile_hosts(data, location):
     else:
 	filename = 'discovered_hosts.conf'
 
+    macp_filename = filename.strip('.conf') + '_mac_ports.csv'
+    mact_filename = filename.strip('.conf') + '_mac_table.csv'
+
     f = open(filename, 'w')
+    macp_f = open(macp_filename, 'w')
+    mact_f = open(mact_filename, 'w')
 
     for ip, hdata in data.iteritems():
 	have_snmp = 0
@@ -344,9 +349,8 @@ def compile_hosts(data, location):
 	    output = ''
 
 	if hdata['hostmac'] != '':
-	    print str(ip) + ' ' + hdata['hostname'] + ' Port IDs'
-	    #print hdata['hostmac'] + ' arp'
-            print hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname']
+	    #print str(ip) + ' ' + hdata['hostname'] + ' got Host MAC'
+	    macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
@@ -355,10 +359,10 @@ def compile_hosts(data, location):
 
 	try:
             output = data['output'].split('\n')
-            if hdata['hostmac'] == '':
-                print str(ip) + ' ' + hdata['hostname'] + ' Port IDs'
+            if len(output) > 2:
+                print str(ip) + ' ' + hdata['hostname'] + ' got Port IDs'
             if chassisid != '':
-                print chassisid + ' chassis'
+                macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
             for line in output:
                 if '.3.6.1.2.1.2.2.1.6.' in line:
                     line = line.split('.')[-1]
@@ -368,8 +372,7 @@ def compile_hosts(data, location):
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
                     maca = ':'.join(maca.split(' ')[:-1])
                     if maca and maca != '':
-                        #print maca + ' port ' + ifno
-                        print maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname']
+                        macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
 	except:
 	    output = ''
@@ -383,7 +386,7 @@ def compile_hosts(data, location):
 	try:
             output = data['output'].split('\n')
             if len(output) > 2:
-                print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
+                print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
                     ifno = ': '.join(line.split(': ')[1:]).strip('"')
@@ -397,8 +400,7 @@ def compile_hosts(data, location):
                              maca = maca + ':'
                         maca = maca + '{:02X}'.format(int(c))
                     have_mact = 1
-                    #print maca + ' on port ' + ifno
-                    print maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname']
+                    mact_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
 	except:
 	    output = ''
@@ -411,7 +413,7 @@ def compile_hosts(data, location):
 	try:
             output = data['output'].split('\n')
             if len(output) > 2:
-                print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
+                print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.4.3.1.2.' in line:
                     ifno = ': '.join(line.split(': ')[1:]).strip('"')
@@ -424,8 +426,7 @@ def compile_hosts(data, location):
                         if maca != '':
                              maca = maca + ':'
                         maca = maca + '{:02X}'.format(int(c))
-                    #print maca + ' on port ' + ifno
-                    print maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname']
+                    mact_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
 	except:
 	    output = ''
@@ -449,6 +450,8 @@ def compile_hosts(data, location):
 	f.write(host_entry)
 
     f.close()
+    macp_f.close()
+    mact_f.close()
 
     return filename
 
@@ -596,7 +599,6 @@ def parse_nmap_scan(data):
         if mac_match in line and line is not None:
             maca = line[len(mac_match):].split(' ')[0]
             if prev_line != '':
-                print prev_line+';'+maca
                 hosts.append(prev_line+';'+maca)
                 prev_line = ''
 
