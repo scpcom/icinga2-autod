@@ -358,7 +358,8 @@ def compile_hosts(data, location):
                         ifno = '0'+ifno
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
                     maca = ':'.join(maca.split(' ')[:-1])
-                    print maca + ' port ' + ifno
+                    if maca and maca != '':
+                        print maca + ' port ' + ifno
 
 	except:
 	    output = ''
@@ -371,7 +372,7 @@ def compile_hosts(data, location):
 
 	try:
             output = data['output'].split('\n')
-            if len(output) > 1:
+            if len(output) > 2:
                 print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
@@ -398,7 +399,8 @@ def compile_hosts(data, location):
 
 	try:
             output = data['output'].split('\n')
-            print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
+            if len(output) > 2:
+                print str(ip) + ' ' + hdata['hostname'] + ' MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.4.3.1.2.' in line:
                     ifno = ': '.join(line.split(': ')[1:]).strip('"')
