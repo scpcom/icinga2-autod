@@ -528,6 +528,7 @@ def compile_hvars(sysdesc, devdesc):
 	'OfficeConnect': 'vars.network_switch = "true"',
 	'ProCurve': 'vars.network_switch = "true"',
 	'PROCURVE': 'vars.network_switch = "true"',
+	'PoEP Switch': 'vars.network_switch = "true"',
 	'SuperStack': 'vars.network_switch = "true"',
 	'DGS-1210': 'vars.network_switch = "true"',
 	'Managed Switch': 'vars.network_switch = "true"',
