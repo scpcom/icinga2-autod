@@ -302,7 +302,7 @@ def compile_hosts(data, location):
 	iffirst = 999999
 	ifcount = 0
 	is_comware = "false"
-	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated']
+	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0']
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
 	else:
@@ -527,6 +527,7 @@ def compile_hvars(sysdesc, devdesc):
 	'ProCurve': 'vars.network_switch = "true"',
 	'PROCURVE': 'vars.network_switch = "true"',
 	'SuperStack': 'vars.network_switch = "true"',
+	'DGS-1210': 'vars.network_switch = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'Windows':'vars.os = "Windows"',
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
