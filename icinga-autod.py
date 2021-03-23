@@ -528,6 +528,7 @@ def compile_hvars(sysdesc, devdesc):
 	'PROCURVE': 'vars.network_switch = "true"',
 	'SuperStack': 'vars.network_switch = "true"',
 	'DGS-1210': 'vars.network_switch = "true"',
+	'Printing System': 'vars.network_printer = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'Windows':'vars.os = "Windows"',
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
