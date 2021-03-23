@@ -91,7 +91,7 @@ def main():
     location = args.location
 
     credential = dict()
-    credential['version'] = '2c'
+    credential['version'] = [ '2c', '1' ]
     credential['community'] = args.communities.split(',')
 
     #Hostname and sysDescr OIDs
@@ -139,6 +139,7 @@ def main():
         try:
             output = data['output'].split('\n')
             community = data['community']
+            snmp_version = data['version']
 
 	    hostname = output[0].strip('"')
             sysdesc = output[1].strip('"').strip('\r')
@@ -147,6 +148,7 @@ def main():
 
         except:
             community = 'unknown'
+            snmp_version = ''
             output = ''
 
             syslocation = ''
@@ -161,7 +163,7 @@ def main():
 	    vendor = None
 	    
 	all_hosts[host] = { 
-	    'community': community, 'snmp_version': credential['version'], 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
+	    'community': community, 'snmp_version': snmp_version, 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
 	if debug:
 	    print host, sysobject, all_hosts[host]
@@ -614,11 +616,15 @@ def snmpget_by_cl(host, credential, oid, timeout=1, retries=0):
     '''
 
     data = {}
-    version = credential['version']
+    versions = credential['version']
     communities = credential['community']
+    ver_count = len(versions)
     com_count = len(communities)
 
-    for i in range(0, com_count):
+    for h in range(0, ver_count):
+      version = versions[h].strip()
+      com_ok = 0
+      for i in range(0, com_count):
 	cmd = ''
 	community = communities[i].strip()
         cmd = "snmpget -Oqv -v %s -c %s -r %s -t %s %s %s" % (
@@ -636,10 +642,14 @@ def snmpget_by_cl(host, credential, oid, timeout=1, retries=0):
 	    try:
 	        data['output'] = output
 	        data['community'] = community
+	        data['version'] = version
+	        com_ok = 1
 		#Got the data, now get out
 		break	
 	    except Exception, e:
 		print "There was a problem appending data to the dict " + str(e)
+      if com_ok == 1:
+        break
 
     return data
 
