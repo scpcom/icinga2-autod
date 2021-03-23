@@ -301,8 +301,9 @@ def compile_hosts(data, location):
 
 	iffirst = 999999
 	ifcount = 0
+	ifentries = 0
 	is_comware = "false"
-	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0']
+	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface']
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
 	else:
@@ -325,6 +326,7 @@ def compile_hosts(data, location):
                         iffirst = ifno
                     if ifskip == 0 and ifno > ifcount:
                         ifcount = ifno
+                        ifentries = ifentries + 1
                         #print str(ifno) + ': ' + ifna
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
@@ -439,7 +441,7 @@ def compile_hosts(data, location):
 	if ifcount > 0:
 	    if iffirst < ifcount:
 	        ifcount = ifcount - iffirst + 1
-	    hostvars += 'vars.network_ports = ' + str(ifcount) +'\n  '
+	    hostvars += 'vars.network_ports = ' + str(ifentries) +'\n  '
 	if hdata['community'] != '' and  hdata['community'] != 'unknown':
 	    hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
 	    hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
@@ -528,6 +530,7 @@ def compile_hvars(sysdesc, devdesc):
 	'PROCURVE': 'vars.network_switch = "true"',
 	'SuperStack': 'vars.network_switch = "true"',
 	'DGS-1210': 'vars.network_switch = "true"',
+	'Managed Switch': 'vars.network_switch = "true"',
 	'Printing System': 'vars.network_printer = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'Windows':'vars.os = "Windows"',
