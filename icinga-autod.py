@@ -302,7 +302,7 @@ def compile_hosts(data, location):
 	iffirst = 999999
 	ifcount = 0
 	is_comware = "false"
-	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan']
+	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated']
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
 	else:
@@ -312,7 +312,7 @@ def compile_hosts(data, location):
             output = data['output'].split('\n')
             for line in output:
                 if '.3.6.1.2.1.2.2.1.2.' in line:
-                    line = line.split('.')[-1]
+                    line = '.'.join(line.split('.')[10:])
                     ifno = int(line.split(' ') [0])
                     ifna = ': '.join(line.split(': ')[1:]).strip('"')
 
@@ -526,6 +526,7 @@ def compile_hvars(sysdesc, devdesc):
 	'OfficeConnect': 'vars.network_switch = "true"',
 	'ProCurve': 'vars.network_switch = "true"',
 	'PROCURVE': 'vars.network_switch = "true"',
+	'SuperStack': 'vars.network_switch = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'Windows':'vars.os = "Windows"',
 	'APC Web/SNMP': 'vars.ups_apc = "true"', 
