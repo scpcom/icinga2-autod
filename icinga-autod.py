@@ -531,6 +531,10 @@ def compile_hvars(sysdesc, devdesc):
 	'SuperStack': 'vars.network_switch = "true"',
 	'DGS-1210': 'vars.network_switch = "true"',
 	'Managed Switch': 'vars.network_switch = "true"',
+	'Lexmark CS': 'vars.network_printer = "true"',
+	'Lexmark MS': 'vars.network_printer = "true"',
+	'Lexmark MX': 'vars.network_printer = "true"',
+	'Lexmark XM': 'vars.network_printer = "true"',
 	'Printing System': 'vars.network_printer = "true"',
 	'Linux':'vars.os = "Linux"', 
 	'Windows':'vars.os = "Windows"',
@@ -541,6 +545,7 @@ def compile_hvars(sysdesc, devdesc):
         'LaserJet': 'vars.network_printer = "true"',
         'Officejet': 'vars.network_printer = "true"',
         'OfficeJet': 'vars.network_printer = "true"',
+        'SHARP MX': 'vars.network_printer = "true"',
     }
 
     hostvars = ''
