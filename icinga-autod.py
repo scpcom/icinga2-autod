@@ -300,13 +300,38 @@ def compile_hosts(data, location):
 	    hostname = hdata['hostname']
 
 	# .3.6.1.2.1.2.2.1.2     ifDescr
+	# .3.6.1.2.1.2.2.1.3     ifType
 	# .3.6.1.2.1.31.1.1.1.1  ifName
 	# .3.6.1.2.1.31.1.1.1.18 ifAlias
+	desc_output = ''
+	type_output = ''
 	iffirst = 999999
 	ifcount = 0
 	ifentries = 0
 	is_comware = "false"
 	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port']
+	type_filter = [1, 24, 53, 161]
+
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+	else:
+	    data = ''
+
+	try:
+	    desc_output = data['output'].split('\n')
+	except:
+	    desc_output = ''
+
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
+	else:
+	    data = ''
+
+	try:
+	    type_output = data['output'].split('\n')
+	except:
+	    type_output = ''
+
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
 	else:
@@ -320,9 +345,24 @@ def compile_hosts(data, location):
                     ifno = int(line.split(' ') [0])
                     ifna = ': '.join(line.split(': ')[1:]).strip('"')
 
+                    ifde = ''
+                    for desc in desc_output:
+                        if '.3.6.1.2.1.2.2.1.2.'+str(ifno)+' ' in desc:
+                            desc = '.'.join(desc.split('.')[10:])
+                            ifde = ': '.join(desc.split(': ')[1:]).strip('"')
+                    ifty = 0
+                    for type in type_output:
+                        if '.3.6.1.2.1.2.2.1.3.'+str(ifno)+' ' in type:
+                            type = '.'.join(type.split('.')[10:])
+                            ifty = int(': '.join(type.split(': ')[1:]).strip('"'))
+                    #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde
+
                     ifskip = 0
                     for prefix in port_filter:
                         if ifna.startswith(prefix):
+                            ifskip = 1
+                    for filtyp in type_filter:
+                        if ifty == filtyp:
                             ifskip = 1
 
                     if ifskip == 0 and ifno < iffirst:
