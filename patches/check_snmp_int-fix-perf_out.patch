@@ -1,0 +1,23 @@
+--- a/check_snmp_int.pl	2019-01-23 20:44:01.000000000 +0100
++++ b/check_snmp_int.pl	2021-03-24 12:22:58.021527250 +0100
+@@ -993,17 +993,17 @@
+ if ($num_ok == $num_int) {
+     if ($final_status == 0) {
+         print $print_out, ":", $num_ok, " UP: OK";
+-        if (defined($o_perf)) { print " | ", $perf_out; }
++        if (defined($o_perf) && defined($perf_out)) { print " | ", $perf_out; }
+         print "\n";
+         exit $ERRORS{"OK"};
+     } elsif ($final_status == 1) {
+         print $print_out, ":(", $num_ok, " UP): WARNING";
+-        if (defined($o_perf)) { print " | ", $perf_out; }
++        if (defined($o_perf) && defined($perf_out)) { print " | ", $perf_out; }
+         print "\n";
+         exit $ERRORS{"WARNING"};
+     } elsif ($final_status == 2) {
+         print $print_out, ":(", $num_ok, " UP): CRITICAL";
+-        if (defined($o_perf)) { print " | ", $perf_out; }
++        if (defined($o_perf) && defined($perf_out)) { print " | ", $perf_out; }
+         print "\n";
+         exit $ERRORS{"CRITICAL"};
+     } else {
