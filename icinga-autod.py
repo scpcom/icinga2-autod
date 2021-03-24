@@ -299,21 +299,24 @@ def compile_hosts(data, location):
 	else:
 	    hostname = hdata['hostname']
 
+	# .3.6.1.2.1.2.2.1.2     ifDescr
+	# .3.6.1.2.1.31.1.1.1.1  ifName
+	# .3.6.1.2.1.31.1.1.1.18 ifAlias
 	iffirst = 999999
 	ifcount = 0
 	ifentries = 0
 	is_comware = "false"
-	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface']
+	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port']
 	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
 	else:
 	    data = ''
 
 	try:
             output = data['output'].split('\n')
             for line in output:
-                if '.3.6.1.2.1.2.2.1.2.' in line:
-                    line = '.'.join(line.split('.')[10:])
+                if '.3.6.1.2.1.31.1.1.1.1.' in line:
+                    line = '.'.join(line.split('.')[11:])
                     ifno = int(line.split(' ') [0])
                     ifna = ': '.join(line.split(': ')[1:]).strip('"')
 
