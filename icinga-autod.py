@@ -533,6 +533,7 @@ def compile_hvars(sysdesc, devdesc):
 	'SuperStack': 'vars.network_switch = "true"',
 	'DGS-1210': 'vars.network_switch = "true"',
 	'Managed Switch': 'vars.network_switch = "true"',
+	'SMC8024L': 'vars.network_switch = "true"',
 	'Canon iR': 'vars.network_printer = "true"',
 	'Lexmark CS': 'vars.network_printer = "true"',
 	'Lexmark MS': 'vars.network_printer = "true"',
