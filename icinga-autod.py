@@ -525,6 +525,7 @@ def compile_hvars(sysdesc, devdesc):
 	'RouterOS': 'vars.network_mikrotik = "true"', 
 	'Baseline Switch': 'vars.network_switch = "true"',
 	'Comware Platform': 'vars.network_switch = "true"',
+	'HP 1810': 'vars.network_switch = "true"',
 	'OfficeConnect': 'vars.network_switch = "true"',
 	'ProCurve': 'vars.network_switch = "true"',
 	'PROCURVE': 'vars.network_switch = "true"',
