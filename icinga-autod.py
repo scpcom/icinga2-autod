@@ -541,6 +541,51 @@ def compile_hosts(data, location):
         except:
             output = ''
 
+        if have_snmp == 1:
+            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
+        else:
+            data = ''
+
+        try:
+            type_output = data['output'].split('\n')
+        except:
+            type_output = ''
+
+        if have_snmp == 1:
+            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.3')
+        else:
+            data = ''
+
+        snmp_storage_mem_name=''
+        snmp_storage_swap_name=''
+        snmp_storage_disk_name=''
+        try:
+            output = data['output'].split('\n')
+            for line in output:
+                if '.3.6.1.2.1.25.2.3.1.3.' in line:
+                    line = '.'.join(line.split('.')[11:])
+                    stno = int(line.split(' ') [0])
+                    stna = ': '.join(line.split(': ')[1:]).strip('"')
+
+                    stty = 0
+                    for type in type_output:
+                        if '.3.6.1.2.1.25.2.3.1.2.'+str(stno)+' ' in type:
+                            type = '.'.join(type.split('.')[11:])
+                            if '.3.6.1.2.1.25.2.1.' in type:
+                                type = ': '.join(type.split(': ')[1:]).strip('"')
+                                stty=int(type.split('.')[-1:][0])
+                    if ':\\\\ Label:' in stna:
+                        stna = stna.split(' Label:')[0]
+                    #print str(stno)+';'+str(stty)+';'+stna
+                    if stty == 2:
+                        snmp_storage_mem_name=stna
+                    elif stty == 3:
+                        snmp_storage_swap_name=stna
+                    elif stty == 4 and snmp_storage_disk_name == '':
+                        snmp_storage_disk_name=stna
+        except:
+            output = ''
+
 	#print str(ifcount) + ' interfaces'
 	if is_comware == "true":
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
@@ -559,6 +604,12 @@ def compile_hosts(data, location):
             hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_netsnmp + '"' +'\n  '
         if snmp_is_hp == "true":
             hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_hp + '"' +'\n  '
+        if snmp_storage_mem_name != '':
+             hostvars += 'vars.snmp_storage_mem_name = "' + snmp_storage_mem_name + '"' +'\n  '
+        if snmp_storage_swap_name != '':
+             hostvars += 'vars.snmp_storage_swap_name = "' + snmp_storage_swap_name + '"' +'\n  '
+        if snmp_storage_disk_name != '':
+             hostvars += 'vars.snmp_storage_disk_name = "' + snmp_storage_disk_name + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
