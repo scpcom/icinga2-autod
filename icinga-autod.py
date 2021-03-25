@@ -508,6 +508,39 @@ def compile_hosts(data, location):
 	except:
             output = ''
 
+        snmp_is_netsnmp = "false"
+
+        if have_snmp == 1:
+            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6.0')
+        else:
+            data = ''
+
+        try:
+            output = data['output'].split('\n')
+            for line in output:
+                if '.3.6.1.4.1.2021.4.6.0.' in line:
+                    snmp_is_netsnmp = "true"
+                    break
+        except:
+            output = ''
+
+
+        snmp_is_hp = "false"
+
+        if have_snmp == 1:
+            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6')
+        else:
+            data = ''
+
+        try:
+            output = data['output'].split('\n')
+            for line in output:
+                if '.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.' in line:
+                    snmp_is_hp = "true"
+                    break
+        except:
+            output = ''
+
 	#print str(ifcount) + ' interfaces'
 	if is_comware == "true":
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
@@ -522,6 +555,10 @@ def compile_hosts(data, location):
 	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
         if snmp_load_type != '':
             hostvars += 'vars.snmp_load_type = "' + snmp_load_type + '"' +'\n  '
+        if snmp_is_netsnmp == "true":
+            hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_netsnmp + '"' +'\n  '
+        if snmp_is_hp == "true":
+            hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_hp + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
 	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
