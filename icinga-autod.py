@@ -532,15 +532,36 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 	host_entry += '  vars.location = "{0}"\n'.format(location)
     if vendor:
 	host_entry += '  vars.vendor = "{0}"\n'.format(vendor)
-    if hostvars: 
-	host_entry += '  {0}\n'.format(hostvars)
+
+    sysssh = 0
+    ret, output, err = exec_command('nmap -p22 {0}'.format(ip))
+    if ret and err:
+        sysssh = 0
+    else:
+        sysssh = parse_nmap_port_scan(output, '22/tcp ')
+
+    if sysssh == 1:
+         hostvars += 'vars.ssh_port = ' + '22' +'\n  '
+
+    systelnet = 0
+    ret, output, err = exec_command('nmap -p23 {0}'.format(ip))
+    if ret and err:
+        systelnet = 0
+    else:
+        systelnet = parse_nmap_port_scan(output, '23/tcp ')
+
+    if systelnet == 1:
+         hostvars += 'vars.telnet_port = ' + '23' +'\n  '
+
+    if hostvars:
+        host_entry += '  {0}\n'.format(hostvars)
 
     syshttp = 0
     ret, output, err = exec_command('nmap -p80 {0}'.format(ip))
     if ret and err:
         syshttp = 0
     else:
-        syshttp = parse_nmap_port_scan(output)
+        syshttp = parse_nmap_port_scan(output, '80/tcp ')
 
     if syshttp == 1:
         host_entry += '  vars.http_vhosts["http"] = {\n'
@@ -551,9 +572,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     return host_entry
 
-def parse_nmap_port_scan(data):
+def parse_nmap_port_scan(data, match):
     data_list = data.split('\n')
-    match = '80/tcp '
     ret = 0
     for line in data_list:
         if match in line and line is not None:
