@@ -1060,7 +1060,8 @@
           "aliasColors": {
             "Load 1": "#44bb77",
             "Load 15": "#0095BF",
-            "Load 5": "#ffaa44"
+            "Load 5": "#ffaa44",
+            "CPU Usage": "#44bb77"
           },
           "bars": false,
           "dashLength": 10,
@@ -1254,7 +1255,7 @@
               ]
             },
             {
-              "alias": "Downtime",
+              "alias": "CPU Usage",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -1274,6 +1275,56 @@
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "cpu_prct_used"
+                }
+              ]
+            },
+            {
+              "alias": "Downtime",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-load",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "E",
               "resultFormat": "time_series",
               "select": [
                 [
