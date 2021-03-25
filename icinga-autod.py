@@ -576,6 +576,7 @@ def compile_hosts(data, location):
                                 stty=int(type.split('.')[-1:][0])
                     if ':\\\\ Label:' in stna:
                         stna = stna.split(' Label:')[0]
+                        stna = '\\\\'.join(stna.split('\\'))
                     #print str(stno)+';'+str(stty)+';'+stna
                     if stty == 2:
                         snmp_storage_mem_name=stna
