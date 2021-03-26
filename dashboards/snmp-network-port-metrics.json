@@ -223,7 +223,8 @@
         },
         {
           "aliasColors": {
-            "Used": "#44bb77"
+            "Used": "#44bb77",
+            "Physical Memory": "#44bb77"
           },
           "bars": false,
           "dashLength": 10,
@@ -529,6 +530,56 @@
                   "value": "/^$hostname$/"
                 }
               ]
+            },
+            {
+              "alias": "Physical Memory",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "Physical_Memory"
+                }
+              ]
             }
           ],
           "thresholds": [],
@@ -569,7 +620,8 @@
         },
         {
           "aliasColors": {
-            "Used": "#44bb77"
+            "Used": "#44bb77",
+            "Virtual Memory": "#44bb77"
           },
           "bars": false,
           "dashLength": 10,
@@ -759,6 +811,56 @@
                   "key": "hostname",
                   "operator": "=~",
                   "value": "/^$hostname$/"
+                }
+              ]
+            },
+            {
+              "alias": "Virtual Memory",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "Virtual_Memory"
                 }
               ]
             }
