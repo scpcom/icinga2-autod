@@ -260,12 +260,14 @@ def compile_hosts(data, location):
     else:
 	filename = 'discovered_hosts.conf'
 
-    macp_filename = filename.strip('.conf') + '_mac_ports.csv'
-    mact_filename = filename.strip('.conf') + '_mac_table.csv'
+    macp_filename = filename.replace('.conf', '_mac_ports.csv')
+    mact_filename = filename.replace('.conf', '_mac_table.csv')
+    lldt_filename = filename.replace('.conf', '_mac_lldp.csv')
 
     f = open(filename, 'w')
     macp_f = open(macp_filename, 'w')
     mact_f = open(mact_filename, 'w')
+    lldt_f = open(lldt_filename, 'w')
 
     for ip, hdata in data.iteritems():
 	have_snmp = 0
@@ -478,6 +480,30 @@ def compile_hosts(data, location):
 	except:
 	    output = ''
 
+	have_lldt = 0
+	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.5')
+	else:
+	    data = ''
+
+	try:
+            output = data['output'].split('\n')
+            if len(output) > 1:
+                if '.0.8802.1.1.2.1.4.1.1.5.' in output[0]:
+                    print str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table'
+            for line in output:
+                if '.0.8802.1.1.2.1.4.1.1.5.' in line:
+                    ifno = line.split('.')[12:][0]
+                    line = '.'.join(line.split('.')[13:])
+                    ifnr = line.split(' = ')[0]
+                    maca = ': '.join(line.split(': ')[1:]).strip('"').replace(' ', ':')[:-1]
+                    #print ifno+';'+ifnr+';'+maca
+                    have_lldt = 1
+                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] +'\n')
+
+	except:
+	    output = ''
+
 	snmp_load_type = ""
 
 	if have_snmp == 1:
@@ -620,6 +646,7 @@ def compile_hosts(data, location):
     f.close()
     macp_f.close()
     mact_f.close()
+    lldt_f.close()
 
     return filename
 
