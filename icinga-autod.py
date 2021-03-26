@@ -496,7 +496,11 @@ def compile_hosts(data, location):
                     ifno = line.split('.')[12:][0]
                     line = '.'.join(line.split('.')[13:])
                     ifnr = line.split(' = ')[0]
-                    maca = ': '.join(line.split(': ')[1:]).strip('"').replace(' ', ':')[:-1]
+                    maca = ': '.join(line.split(': ')[1:]).strip('"').replace(' ', ':').replace('-', ':').upper()
+                    if maca[-1:] == ':':
+                        maca = maca[:-1]
+                    if len(maca) == 12 and not ':' in maca:
+                        maca = maca[:2] + ':' + maca[2:4] + ':' + maca[4:6] + ':' + maca[6:8] + ':' + maca[8:10] + ':' + maca[10:12]
                     #print ifno+';'+ifnr+';'+maca
                     have_lldt = 1
                     lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] +'\n')
