@@ -307,12 +307,14 @@ def compile_hosts(data, location):
 	# .3.6.1.2.1.31.1.1.1.18 ifAlias
 	desc_output = ''
 	type_output = ''
+	alias_output = list()
 	iffirst = 999999
 	ifcount = 0
 	ifentries = 0
 	is_comware = "false"
 	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port']
-	type_filter = [1, 24, 53, 161]
+	alias_filter = ['MAC Layer LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
+	type_filter = [1, 23, 24, 53, 131, 161]
 
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
@@ -335,6 +337,16 @@ def compile_hosts(data, location):
 	    type_output = ''
 
 	if have_snmp == 1:
+	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.18')
+	else:
+	    data = ''
+
+	try:
+	    alias_output = data['output'].split('\n')
+	except:
+	    alias_output = list()
+
+	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
 	else:
 	    data = ''
@@ -347,6 +359,11 @@ def compile_hosts(data, location):
                     ifno = int(line.split(' ') [0])
                     ifna = ': '.join(line.split(': ')[1:]).strip('"')
 
+                    ifal = ''
+                    for alias in alias_output:
+                        if '.3.6.1.2.1.31.1.1.1.18.'+str(ifno)+' ' in alias:
+                            alias = '.'.join(alias.split('.')[11:])
+                            ifal = ': '.join(alias.split(': ')[1:]).strip('"')
                     ifde = ''
                     for desc in desc_output:
                         if '.3.6.1.2.1.2.2.1.2.'+str(ifno)+' ' in desc:
@@ -357,11 +374,14 @@ def compile_hosts(data, location):
                         if '.3.6.1.2.1.2.2.1.3.'+str(ifno)+' ' in type:
                             type = '.'.join(type.split('.')[10:])
                             ifty = int(': '.join(type.split(': ')[1:]).strip('"'))
-                    #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde
+                    #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal
 
                     ifskip = 0
                     for prefix in port_filter:
                         if ifna.startswith(prefix):
+                            ifskip = 1
+                    for filali in alias_filter:
+                        if filali in ifal:
                             ifskip = 1
                     for filtyp in type_filter:
                         if ifty == filtyp:
@@ -372,7 +392,7 @@ def compile_hosts(data, location):
                     if ifskip == 0 and ifno > ifcount:
                         ifcount = ifno
                         ifentries = ifentries + 1
-                        #print str(ifno) + ': ' + ifna
+                        #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
 
