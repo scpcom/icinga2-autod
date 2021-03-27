@@ -24,6 +24,7 @@ for macp_filename in macp_filenames:
         macp_reader += list( csv.reader(macp_file, delimiter=';') )
 
 macf_f = open(macf_filename, 'w')
+macf_f.write('port-mac;port-host-ip;port-host-name;port-id;remote-host-ip;remote-host-name;remote-id;shared-count' +'\n');
 prev_maca = ''
 arpa = ''
 for macp in macp_reader:
