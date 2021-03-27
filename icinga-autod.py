@@ -289,6 +289,8 @@ def compile_hosts(data, location):
 	# .3.6.1.2.1.2.2.1.2     ifDescr
 	# .3.6.1.2.1.2.2.1.3     ifType
 	# .3.6.1.2.1.2.2.1.6     ifPhysAddress
+	# .3.6.1.2.1.2.2.1.7     ifAdminStatus
+	# .3.6.1.2.1.2.2.1.8     ifOperStatus
 	# .3.6.1.2.1.31.1.1.1.1  ifName
 	# .3.6.1.2.1.31.1.1.1.18 ifAlias
 	iffirst = 999999
@@ -302,6 +304,8 @@ def compile_hosts(data, location):
 	desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
 	type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
 	phys_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
+	admi_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.7')
+	oper_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.8')
 	name_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
 	alias_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.18')
 
@@ -366,12 +370,70 @@ def compile_hosts(data, location):
             for line in phys_output:
                 if '.3.6.1.2.1.2.2.1.6.' in line:
                     line = line.split('.')[-1]
-                    ifno = line.split(' = ') [0]
-                    if int(ifno) < 10:
-                        ifno = '0'+ifno
+                    ifno = int(line.split(' = ')[0])
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
                     maca = ':'.join(maca.split(' ')[:-1])
+
+                    ifna = ''
+                    for name in name_output:
+                        if '.3.6.1.2.1.31.1.1.1.1.'+str(ifno) in name:
+                            name = '.'.join(name.split('.')[11:])
+                            ifna = ': '.join(name.split(': ')[1:]).strip('"')
+
+                    ifal = ''
+                    for alias in alias_output:
+                        if '.3.6.1.2.1.31.1.1.1.18.'+str(ifno)+' ' in alias:
+                            alias = '.'.join(alias.split('.')[11:])
+                            ifal = ': '.join(alias.split(': ')[1:]).strip('"')
+                    ifde = ''
+                    for desc in desc_output:
+                        if '.3.6.1.2.1.2.2.1.2.'+str(ifno)+' ' in desc:
+                            desc = '.'.join(desc.split('.')[10:])
+                            ifde = ': '.join(desc.split(': ')[1:]).strip('"')
+
+                    ifty = 0
+                    for type in type_output:
+                        if '.3.6.1.2.1.2.2.1.3.'+str(ifno)+' ' in type:
+                            type = '.'.join(type.split('.')[10:])
+                            ifty = int(': '.join(type.split(': ')[1:]).strip('"'))
+
+                    ifad = 0
+                    for admi in admi_output:
+                        if '.3.6.1.2.1.2.2.1.7.'+str(ifno)+' ' in admi:
+                            admi = '.'.join(admi.split('.')[10:])
+                            ifad = int(': '.join(admi.split(': ')[1:]).strip('"'))
+
+                    ifop = 0
+                    for oper in oper_output:
+                        if '.3.6.1.2.1.2.2.1.8.'+str(ifno)+' ' in oper:
+                            oper = '.'.join(oper.split('.')[10:])
+                            ifop = int(': '.join(oper.split(': ')[1:]).strip('"'))
+
+                    ifskip = 0
+                    for prefix in port_filter:
+                        if ifna.startswith(prefix):
+                            ifskip = 1
+                    for filali in alias_filter:
+                        if filali in ifal:
+                            ifskip = 1
+                    for filtyp in type_filter:
+                        if ifty == filtyp:
+                            ifskip = 1
+
                     if maca and maca != '':
+                        if ifentries < 8 and ifad == 1 and ifop == 1 and not ifskip:
+                            if ifna == '':
+                                ifna = ifde
+                            hostvars += 'vars.snmp_interfaces["snmp-int-port'+str(ifno)+'"] = {' +'\n  '
+                            hostvars += '  snmp_interface = "'+ifna+'"' +'\n  '
+                            if ifal != '':
+                                hostvars += '  snmp_interface_label = "'+ifal+'"' +'\n  '
+                            else:
+                                hostvars += '  snmp_interface_label = "'+ifna+'"' +'\n  '
+                            hostvars += '}' +'\n  '
+                        ifno = str(ifno)
+                        if int(ifno) < 10:
+                            ifno = '0'+ifno
                         portcount = portcount + 1
                         macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
@@ -450,10 +512,13 @@ def compile_hosts(data, location):
 	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6'):
 		snmp_is_hp = "true"
 
+	snmp_interface_ifname = "false"
 	snmp_interface_64bit = "false"
 	snmp_interface_speed64bit = "false"
 	snmp_interface_perf = "true"
 	snmp_interface_bits_bytes = "true"
+	if len(name_output) > 0:
+		snmp_interface_ifname = "true"
 	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.10'):
 		snmp_interface_64bit = "true"
 	elif snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.15'):
@@ -506,6 +571,7 @@ def compile_hosts(data, location):
 	    if hdata['snmp_version'] == '2c':
 	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
 
+        hostvars += 'vars.snmp_interface_ifname = ' + snmp_interface_ifname +'\n  '
         if snmp_interface_64bit == "true":
             hostvars += 'vars.snmp_interface_64bit = ' + snmp_interface_64bit +'\n  '
         if snmp_interface_speed64bit == "true":
