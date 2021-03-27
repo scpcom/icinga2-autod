@@ -25,10 +25,14 @@ for macp_filename in macp_filenames:
 
 macf_f = open(macf_filename, 'w')
 prev_maca = ''
+arpa = ''
 for macp in macp_reader:
     macp_hostname = macp[3].split('.')[0]
+    macp_ip = macp[2]
     port_share = 999999
     port_data = {}
+    if macp[1] == 'arp':
+        arpa = macp[0]
 
     for lldt in lldt_reader:
         if macp[0] == lldt[0]:
@@ -38,8 +42,17 @@ for macp in macp_reader:
             pidx=1
             port_hostname = port_data[pidx+3].split('.')[0]
             port_ip = port_data[pidx+2]
-            print macp[0] + ' ' + macp[2] + ' ' + macp_hostname + ' port ' + macp[1] + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
-            macf_f.write( macp[0] + ';' + macp[2] + ';' + macp_hostname + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
+            local_port = ''
+            for pldt in lldt_reader:
+                if pldt[3] == macp_ip:
+                    for pacp in macp_reader:
+                        if pacp[0] == pldt[0] and pacp[2] == port_ip:
+                            local_port = pldt[1]
+            if local_port == '' and macp[0] == arpa:
+                local_port = 'arp'
+
+            print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
+            macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
             prev_maca = macp[0]
 
     for mact in mact_reader:
@@ -57,9 +70,12 @@ for macp in macp_reader:
         port_hostname = port_data[pidx+3].split('.')[0]
         port_ip = port_data[pidx+2]
         if  macp[0] != prev_maca:
-            print macp[0] + ' ' + macp[2] + ' ' + macp_hostname + ' port ' + macp[1] + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
-            macf_f.write( macp[0] + ';' + macp[2] + ';' + macp_hostname + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
+            local_port = ''
+            if macp[0] == arpa:
+                local_port = 'arp'
+            print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
+            macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
             prev_maca = macp[0]
     elif macp[1] == 'arp' and port_share > 0:
-        print macp[0] + ' ' + macp[2] + ' port ' + macp[1] + ' not found'
+        print macp[0] + ' ' + macp_ip + ' port ' + macp[1] + ' not found'
 macf_f.close()
