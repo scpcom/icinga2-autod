@@ -542,6 +542,18 @@ def compile_hosts(data, location):
 	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6'):
 		snmp_is_hp = "true"
 
+	snmp_interface_64bit = "false"
+	snmp_interface_speed64bit = "false"
+	snmp_interface_perf = "true"
+	snmp_interface_bits_bytes = "true"
+	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.10'):
+		snmp_interface_64bit = "true"
+	elif snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.15'):
+		snmp_interface_speed64bit = "true"
+	elif not snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.16'):
+		snmp_interface_perf = "false"
+		snmp_interface_bits_bytes = "false"
+
         if have_snmp == 1:
             data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
         else:
@@ -600,6 +612,16 @@ def compile_hosts(data, location):
 	    hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
 	    if hdata['snmp_version'] == '2c':
 	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
+
+        if snmp_interface_64bit == "true":
+            hostvars += 'vars.snmp_interface_64bit = ' + snmp_interface_64bit +'\n  '
+        if snmp_interface_speed64bit == "true":
+            hostvars += 'vars.snmp_interface_speed64bit = ' + snmp_interface_speed64bit +'\n  '
+        if snmp_interface_perf == "false" and have_snmp == 1:
+            hostvars += 'vars.snmp_interface_perf = ' + snmp_interface_perf +'\n  '
+        if snmp_interface_bits_bytes == "false" and have_snmp == 1:
+            hostvars += 'vars.snmp_interface_bits_bytes = ' + snmp_interface_bits_bytes +'\n  '
+
         if snmp_load_type != '':
             hostvars += 'vars.snmp_load_type = "' + snmp_load_type + '"' +'\n  '
         if snmp_is_netsnmp == "true":
