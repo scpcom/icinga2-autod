@@ -1,0 +1,37 @@
+--- a/check_snmp_int.pl	2021-03-27 18:22:23.393827101 +0100
++++ b/check_snmp_int.pl	2021-03-27 18:20:56.692177518 +0100
+@@ -93,6 +93,7 @@
+ my @o_warn          = undef;    # warning levels of perfcheck
+ my @o_crit          = undef;    # critical levels of perfcheck
+ my $o_highperf      = undef;    # Use 64 bits counters
++my $o_highspeed     = undef;    # Use 64 bits speed counters
+ my $o_meg           = undef;    # output in MBytes or Mbits (-M)
+ my $o_gig           = undef;    # output in GBytes or Gbits (-G)
+ my $o_prct          = undef;    # output in % of max speed  (-u)
+@@ -338,6 +339,8 @@
+         'short:i'       => \$o_short,
+         'g'             => \$o_highperf,
+         '64bits'        => \$o_highperf,
++        'j'             => \$o_highspeed,
++        'speed64bits'   => \$o_highspeed,
+         'S'             => \$o_perfs,
+         'intspeed'      => \$o_perfs,
+         'y'             => \$o_perfp,
+@@ -408,7 +411,7 @@
+         print_usage();
+         exit $ERRORS{"UNKNOWN"};
+     }
+-    if (defined($o_highperf)) {
++    if (defined($o_highperf) || defined($o_highspeed)) {
+         if (eval "require bigint") {
+             use bigint;
+         } else {
+@@ -676,7 +679,7 @@
+ # Add performance oids if requested
+ if (defined($o_perf) || defined($o_checkperf)) {
+     @oids = (@oids, @oid_perf_outoct, @oid_perf_inoct, @oid_speed);
+-    if (defined($o_highperf)) {
++    if (defined($o_highperf) || defined($o_highspeed)) {
+         @oids = (@oids, @oid_speed_high);
+     }
+     if (defined($o_ext_checkperf) || defined($o_perfe)) {
