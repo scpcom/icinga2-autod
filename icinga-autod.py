@@ -529,67 +529,18 @@ def compile_hosts(data, location):
 	    output = ''
 
 	snmp_load_type = ""
+	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
+		snmp_load_type = "stand"
+	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.10.1.2'):
+		snmp_load_type = "netsl"
 
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2')
-	else:
-	    data = ''
+	snmp_is_netsnmp = "false"
+	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6.0'):
+		snmp_is_netsnmp = "true"
 
-	try:
-            output = data['output'].split('\n')
-            for line in output:
-                if '.3.6.1.2.1.25.3.3.1.2.' in line:
-                    snmp_load_type = "stand"
-                    break
-	except:
-            output = ''
-
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.10.1.2')
-	else:
-            data = ''
-
-	try:
-            output = data['output'].split('\n')
-            for line in output:
-                if '.3.6.1.4.1.2021.10.1.2.' in line:
-                    snmp_load_type = "netsl"
-                    break
-	except:
-            output = ''
-
-        snmp_is_netsnmp = "false"
-
-        if have_snmp == 1:
-            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6.0')
-        else:
-            data = ''
-
-        try:
-            output = data['output'].split('\n')
-            for line in output:
-                if '.3.6.1.4.1.2021.4.6.0.' in line:
-                    snmp_is_netsnmp = "true"
-                    break
-        except:
-            output = ''
-
-
-        snmp_is_hp = "false"
-
-        if have_snmp == 1:
-            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6')
-        else:
-            data = ''
-
-        try:
-            output = data['output'].split('\n')
-            for line in output:
-                if '.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6.' in line:
-                    snmp_is_hp = "true"
-                    break
-        except:
-            output = ''
+	snmp_is_hp = "false"
+	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6'):
+		snmp_is_hp = "true"
 
         if have_snmp == 1:
             data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
@@ -926,6 +877,25 @@ def snmpwalk_by_cl(host, version, community, oid, timeout=1, retries=0):
             print "There was a problem appending data to the dict " + str(e)
 
     return data
+
+def snmpwalk_tree_valid(host, version, community, oid, timeout=1, retries=0):
+	ret = 0
+	if community == '' or community == 'unknown':
+	    return ret
+
+	match = oid[2:] + '.'
+	data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
+
+	try:
+	    output = data['output'].split('\n')
+	    for line in output:
+	        if match in line:
+	            ret = 1
+	            break
+	except:
+	    output = ''
+
+	return ret
 
 def exec_command(command):
     """Execute command.
