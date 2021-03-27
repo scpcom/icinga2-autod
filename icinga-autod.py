@@ -405,15 +405,10 @@ def compile_hosts(data, location):
                         macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
 	have_mact = 0
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
-	else:
-	    data = ''
+	output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
 
-	try:
-            output = data['output'].split('\n')
-            if len(output) > 2:
-                print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
+	if len(output) > 0:
+            print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
                     ifno = ': '.join(line.split(': ')[1:]).strip('"')
@@ -429,18 +424,13 @@ def compile_hosts(data, location):
                     have_mact = 1
                     mact_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	except:
-	    output = ''
-
-	if have_snmp == 1 and have_mact == 0:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.4.3.1.2')
+	if have_mact == 0:
+	    output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.4.3.1.2')
 	else:
-	    data = ''
+	    output = list()
 
-	try:
-            output = data['output'].split('\n')
-            if len(output) > 2:
-                print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
+	if len(output) > 0:
+            print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.4.3.1.2.' in line:
                     ifno = ': '.join(line.split(': ')[1:]).strip('"')
@@ -455,20 +445,12 @@ def compile_hosts(data, location):
                         maca = maca + '{:02X}'.format(int(c))
                     mact_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	except:
-	    output = ''
-
 	have_lldt = 0
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.5')
-	else:
-	    data = ''
+	output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.5')
 
-	try:
-            output = data['output'].split('\n')
-            if len(output) > 1:
-                if '.0.8802.1.1.2.1.4.1.1.5.' in output[0]:
-                    print str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table'
+	if len(output) > 0:
+            if '.0.8802.1.1.2.1.4.1.1.5.' in output[0]:
+                print str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table'
             for line in output:
                 if '.0.8802.1.1.2.1.4.1.1.5.' in line:
                     ifno = line.split('.')[12:][0]
@@ -482,9 +464,6 @@ def compile_hosts(data, location):
                     #print ifno+';'+ifnr+';'+maca
                     have_lldt = 1
                     lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] +'\n')
-
-	except:
-	    output = ''
 
 	snmp_load_type = ""
 	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
@@ -512,27 +491,14 @@ def compile_hosts(data, location):
 		snmp_interface_perf = "false"
 		snmp_interface_bits_bytes = "false"
 
-        if have_snmp == 1:
-            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
-        else:
-            data = ''
-
-        try:
-            type_output = data['output'].split('\n')
-        except:
-            type_output = ''
-
-        if have_snmp == 1:
-            data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.3')
-        else:
-            data = ''
+	type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
+	desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.3')
 
         snmp_storage_mem_name=''
         snmp_storage_swap_name=''
         snmp_storage_disk_name=''
-        try:
-            output = data['output'].split('\n')
-            for line in output:
+	if len(desc_output) > 0:
+            for line in desc_output:
                 if '.3.6.1.2.1.25.2.3.1.3.' in line:
                     line = '.'.join(line.split('.')[11:])
                     stno = int(line.split(' ') [0])
@@ -555,8 +521,6 @@ def compile_hosts(data, location):
                         snmp_storage_swap_name=stna
                     elif stty == 4 and snmp_storage_disk_name == '':
                         snmp_storage_disk_name=stna
-        except:
-            output = ''
 
 	#print str(ifcount) + ' interfaces'
 	if is_comware == "true":
