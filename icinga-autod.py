@@ -274,22 +274,7 @@ def compile_hosts(data, location):
 	if hdata['community'] != '' and  hdata['community'] != 'unknown':
 	    have_snmp = 1
 
-	devdesc = ''
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1')
-	else:
-	    data = ''
-
-	try:
-            output = data['output'].split('\n')
-            for line in output:
-                if '.3.6.1.2.1.25.3.2.1.3.1' in line:
-                    line = line.split('.')[-1]
-                    devdesc = ': '.join(line.split(': ')[1:]).strip('"')
-                    #print devdesc
-
-	except:
-            output = ''
+	devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
 
 	hostvars = compile_hvars(hdata['sysdesc'], devdesc)
 	hostlocation = location
@@ -364,23 +349,9 @@ def compile_hosts(data, location):
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
 
-	chassisid = ''
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0')
-	else:
-	    data = ''
-
-	try:
-            output = data['output'].split('\n')
-            for line in output:
-                if '.3.6.1.2.1.17.1.1.0' in line:
-                    line = line.split('.')[-1]
-                    chassisid = ': '.join(line.split(': ')[1:]).strip('"')
-                    chassisid = ':'.join(chassisid.split(' ')[:-1])
-                    #print chassisid
-
-	except:
-	    output = ''
+	chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
+	if chassisid != '':
+		chassisid = ':'.join(chassisid.split(' ')[:-1])
 
 	if hdata['hostmac'] != '':
 	    #print str(ip) + ' ' + hdata['hostname'] + ' got Host MAC'
@@ -863,6 +834,27 @@ def snmpwalk_get_tree(host, version, community, oid, timeout=1, retries=0):
 	    output = list()
 
 	return output
+
+def snmpwalk_get_value(host, version, community, oid, default='', timeout=1, retries=0):
+	ret = default
+	output = list()
+	if community == '' and  community == 'unknown':
+	    return output
+
+        match = oid[2:]
+	data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
+
+	try:
+	    output = data['output'].split('\n')
+	    for line in output:
+	        if match in line:
+	            line = line.split('.')[-1]
+	            ret = ': '.join(line.split(': ')[1:]).strip('"')
+	            break
+	except:
+	    output = list()
+
+	return ret
 
 def exec_command(command):
     """Execute command.
