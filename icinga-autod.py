@@ -303,11 +303,9 @@ def compile_hosts(data, location):
 
 	# .3.6.1.2.1.2.2.1.2     ifDescr
 	# .3.6.1.2.1.2.2.1.3     ifType
+	# .3.6.1.2.1.2.2.1.6     ifPhysAddress
 	# .3.6.1.2.1.31.1.1.1.1  ifName
 	# .3.6.1.2.1.31.1.1.1.18 ifAlias
-	desc_output = ''
-	type_output = ''
-	alias_output = list()
 	iffirst = 999999
 	ifcount = 0
 	ifentries = 0
@@ -316,44 +314,14 @@ def compile_hosts(data, location):
 	alias_filter = ['MAC Layer LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
 	type_filter = [1, 23, 24, 53, 131, 161]
 
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
-	else:
-	    data = ''
+	desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+	type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
+	phys_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
+	name_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
+	alias_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.18')
 
-	try:
-	    desc_output = data['output'].split('\n')
-	except:
-	    desc_output = ''
-
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
-	else:
-	    data = ''
-
-	try:
-	    type_output = data['output'].split('\n')
-	except:
-	    type_output = ''
-
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.18')
-	else:
-	    data = ''
-
-	try:
-	    alias_output = data['output'].split('\n')
-	except:
-	    alias_output = list()
-
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
-	else:
-	    data = ''
-
-	try:
-            output = data['output'].split('\n')
-            for line in output:
+	if len(name_output) > 0:
+            for line in name_output:
                 if '.3.6.1.2.1.31.1.1.1.1.' in line:
                     line = '.'.join(line.split('.')[11:])
                     ifno = int(line.split(' ') [0])
@@ -396,9 +364,6 @@ def compile_hosts(data, location):
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
 
-	except:
-            output = ''
-
 	chassisid = ''
 	if have_snmp == 1:
 	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0')
@@ -421,18 +386,13 @@ def compile_hosts(data, location):
 	    #print str(ip) + ' ' + hdata['hostname'] + ' got Host MAC'
 	    macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	if have_snmp == 1:
-	    data = snmpwalk_by_cl(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
-	else:
-	    data = ''
+	portcount = 0
 
-	try:
-            output = data['output'].split('\n')
-            if len(output) > 2:
-                print str(ip) + ' ' + hdata['hostname'] + ' got Port IDs'
+	if len(phys_output) > 0:
+            print str(ip) + ' ' + hdata['hostname'] + ' got Port IDs'
             if chassisid != '':
                 macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
-            for line in output:
+            for line in phys_output:
                 if '.3.6.1.2.1.2.2.1.6.' in line:
                     line = line.split('.')[-1]
                     ifno = line.split(' = ') [0]
@@ -441,10 +401,8 @@ def compile_hosts(data, location):
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
                     maca = ':'.join(maca.split(' ')[:-1])
                     if maca and maca != '':
+                        portcount = portcount + 1
                         macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
-
-	except:
-	    output = ''
 
 	have_mact = 0
 	if have_snmp == 1:
@@ -918,6 +876,29 @@ def snmpwalk_tree_valid(host, version, community, oid, timeout=1, retries=0):
 	    output = ''
 
 	return ret
+
+def snmpwalk_get_tree(host, version, community, oid, timeout=1, retries=0):
+	is_valid = 0
+	output = list()
+	if community == '' and  community == 'unknown':
+	    return output
+
+        match = oid[2:] + '.'
+	data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
+
+	try:
+	    output = data['output'].split('\n')
+	    for line in output:
+	        if match in line:
+	            is_valid = 1
+	            break
+	except:
+	    output = list()
+
+	if not is_valid:
+	    output = list()
+
+	return output
 
 def exec_command(command):
     """Execute command.
