@@ -1490,7 +1490,8 @@
         },
         {
           "aliasColors": {
-            "Used": "#44bb77"
+            "Used": "#44bb77",
+            "C: Used": "#44bb77"
           },
           "bars": false,
           "dashLength": 10,
@@ -1546,6 +1547,12 @@
               "steppedLine": true,
               "yaxis": 2,
               "zindex": -3
+            },
+            {
+              "alias": "C: Total",
+              "color": "#0095BF",
+              "fill": 0,
+              "legend": false
             }
           ],
           "spaceLength": 10,
@@ -1794,6 +1801,106 @@
                   "key": "hostname",
                   "operator": "=~",
                   "value": "/^$hostname$/"
+                }
+              ]
+            },
+            {
+              "alias": "C: Used",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=~",
+                  "value": "/^C:/"
+                }
+              ]
+            },
+            {
+              "alias": "C: Total",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "max"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=~",
+                  "value": "/^C:/"
                 }
               ]
             }
