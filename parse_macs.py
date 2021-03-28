@@ -4,6 +4,7 @@ import os
 import re
 macp_filename = 'discovered_hosts_mac_ports.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
+deps_filename = macp_filename[:-14] + '_deps.conf'
 lldt_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_lldp\.csv', f)]
 mact_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_table\.csv', f)]
 macp_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_ports\.csv', f)]
@@ -25,6 +26,8 @@ for macp_filename in macp_filenames:
 
 macf_f = open(macf_filename, 'w')
 macf_f.write('port-mac;port-host-ip;port-host-name;port-id;remote-host-ip;remote-host-name;remote-id;shared-count' +'\n');
+deps_f = open(deps_filename, 'w')
+deps_list = ''
 prev_maca = ''
 arpa = ''
 for macp in macp_reader:
@@ -51,9 +54,31 @@ for macp in macp_reader:
                             local_port = pldt[1]
             if local_port == '' and macp[0] == arpa:
                 local_port = 'arp'
+            local_service = 'snmp-int-port'+local_port
+            if local_port == 'arp':
+                local_service = 'ping4'
 
             print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
             macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
+
+            deps_skip = 0
+            for deps in deps_list.split('\n'):
+                deps = deps.split(';')
+                if deps[0] == macp_hostname and deps[1] == port_hostname and deps[2] == port_data[1]:
+                    deps_skip = 1
+                    break
+
+            if port_share == 0 and not deps_skip:
+                deps_list += macp_hostname+';'+port_hostname+';'+port_data[1]+'\n'
+                host_deps = ''
+                host_deps += 'apply Dependency "switching" to Service {' +'\n'
+                host_deps += '  parent_host_name = "' + port_hostname + '"' +'\n'
+                host_deps += '  parent_service_name = "' +'snmp-int-port'+port_data[1] + '"' +'\n'
+                host_deps += '  disable_checks = true' +'\n'
+                host_deps += '' +'\n'
+                host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
+                host_deps += '}' +'\n'
+                deps_f.write(host_deps)
             prev_maca = macp[0]
 
     for mact in mact_reader:
@@ -80,3 +105,4 @@ for macp in macp_reader:
     elif macp[1] == 'arp' and port_share > 0:
         print macp[0] + ' ' + macp_ip + ' port ' + macp[1] + ' not found'
 macf_f.close()
+deps_f.close()
