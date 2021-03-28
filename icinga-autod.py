@@ -586,7 +586,7 @@ def compile_hosts(data, location):
         if snmp_is_netsnmp == "true":
             hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_netsnmp + '"' +'\n  '
         if snmp_is_hp == "true":
-            hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_hp + '"' +'\n  '
+            hostvars += 'vars.snmp_is_hp = "' + snmp_is_hp + '"' +'\n  '
         if snmp_storage_mem_name != '':
              hostvars += 'vars.snmp_storage_mem_name = "' + snmp_storage_mem_name + '"' +'\n  '
         if snmp_storage_swap_name != '':
