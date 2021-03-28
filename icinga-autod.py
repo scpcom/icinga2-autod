@@ -297,6 +297,7 @@ def compile_hosts(data, location):
 	ifcount = 0
 	ifentries = 0
 	is_comware = "false"
+	is_hp1810v2 = "false"
 	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port']
 	alias_filter = ['MAC Layer LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
 	type_filter = [1, 23, 24, 53, 131, 161]
@@ -352,6 +353,8 @@ def compile_hosts(data, location):
                         #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
+                    if ifna.startswith('Port  '):
+                        is_hp1810v2 = "true"
 
 	chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
 	if chassisid != '':
@@ -561,6 +564,8 @@ def compile_hosts(data, location):
 	#print str(ifcount) + ' interfaces'
 	if is_comware == "true":
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
+	if is_hp1810v2 == "true":
+	    hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
 	if ifcount > 0:
 	    if iffirst < ifcount:
 	        ifcount = ifcount - iffirst + 1
@@ -613,11 +618,14 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     linevars = hostvars.split('\n')
     is_comware = "false"
+    is_hp1810v2 = "false"
     is_switch = "false"
     ifcount = 0
     for line in linevars:
         if 'vars.network_comware = ' in line:
             is_comware = line.split(' = ')[1].strip('"')
+        if 'vars.network_hp1810v2 = ' in line:
+            is_hp1810v2 = line.split(' = ')[1].strip('"')
         if 'vars.network_switch = ' in line:
             is_switch = line.split(' = ')[1].strip('"')
         if 'vars.network_ports = ' in line:
@@ -628,6 +636,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     if is_switch == "true" and ifcount > 7:
         if is_comware == "true":
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_hp1810v2 == "true":
+            host_entry += '  import "hp1810v2-int-{0}-ports-template"\n'.format(ifcount)
         else:
             host_entry += '  import "int-{0}-ports-template"\n'.format(ifcount)
 
