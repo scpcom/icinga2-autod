@@ -224,7 +224,7 @@
         {
           "aliasColors": {
             "Used": "#44bb77",
-            "Physical Memory": "#44bb77"
+            "Physical Memory Used": "#44bb77"
           },
           "bars": false,
           "dashLength": 10,
@@ -280,6 +280,26 @@
               "steppedLine": true,
               "yaxis": 2,
               "zindex": -3
+            },
+            {
+              "alias": "Physical Memory Warning",
+              "color": "#ffaa44",
+              "fill": 0,
+              "legend": false,
+              "linewidth": 1
+            },
+            {
+              "alias": "Physical Memory Critical",
+              "color": "#ff5566",
+              "fill": 0,
+              "legend": false,
+              "linewidth": 1
+            },
+            {
+              "alias": "Physical Memory Total",
+              "color": "#0095BF",
+              "fill": 0,
+              "legend": false
             }
           ],
           "spaceLength": 10,
@@ -532,7 +552,7 @@
               ]
             },
             {
-              "alias": "Physical Memory",
+              "alias": "Physical Memory Used",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -558,6 +578,156 @@
                   {
                     "params": [
                       "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "Physical_Memory"
+                }
+              ]
+            },
+            {
+              "alias": "PhysicalMemory Total",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "max"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "Physical_Memory"
+                }
+              ]
+            },
+            {
+              "alias": "PhysicalMemory Warning",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "H",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "warn"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "Physical_Memory"
+                }
+              ]
+            },
+            {
+              "alias": "PhysicalMemory Critical",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "I",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "crit"
                     ],
                     "type": "field"
                   },
@@ -621,7 +791,7 @@
         {
           "aliasColors": {
             "Used": "#44bb77",
-            "Virtual Memory": "#44bb77"
+            "Virtual Memory Used": "#44bb77"
           },
           "bars": false,
           "dashLength": 10,
@@ -663,6 +833,12 @@
               "steppedLine": true,
               "yaxis": 2,
               "zindex": -3
+            },
+            {
+              "alias": "Virtual Memory Total",
+              "color": "#0095BF",
+              "fill": 0,
+              "legend": false
             }
           ],
           "spaceLength": 10,
@@ -815,7 +991,7 @@
               ]
             },
             {
-              "alias": "Virtual Memory",
+              "alias": "Virtual Memory Used",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -841,6 +1017,56 @@
                   {
                     "params": [
                       "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=",
+                  "value": "Virtual_Memory"
+                }
+              ]
+            },
+            {
+              "alias": "Virtual Memory Total",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "snmp-storage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "max"
                     ],
                     "type": "field"
                   },
