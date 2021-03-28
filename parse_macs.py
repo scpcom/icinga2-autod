@@ -28,11 +28,14 @@ macf_f = open(macf_filename, 'w')
 macf_f.write('port-mac;port-host-ip;port-host-name;port-id;remote-host-ip;remote-host-name;remote-id;shared-count' +'\n');
 deps_f = open(deps_filename, 'w')
 deps_list = ''
+foun_list = ''
 prev_maca = ''
 arpa = ''
 for macp in macp_reader:
     macp_hostname = macp[3].split('.')[0]
     macp_ip = macp[2]
+    if macp_hostname == '':
+        macp_hostname = macp_ip
     port_share = 999999
     port_data = {}
     if macp[1] == 'arp':
@@ -46,6 +49,9 @@ for macp in macp_reader:
             pidx=1
             port_hostname = port_data[pidx+3].split('.')[0]
             port_ip = port_data[pidx+2]
+            if port_hostname == '':
+                port_hostname = port_ip
+
             local_port = ''
             for pldt in lldt_reader:
                 if pldt[3] == macp_ip:
@@ -58,15 +64,16 @@ for macp in macp_reader:
             if local_port == 'arp':
                 local_service = 'ping4'
 
-            print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
-            macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
-
             deps_skip = 0
             for deps in deps_list.split('\n'):
                 deps = deps.split(';')
-                if deps[0] == macp_hostname and deps[1] == port_hostname and deps[2] == port_data[1]:
+                if len(deps) > 2 and deps[0] == macp_hostname and deps[1] == port_hostname and deps[2] == port_data[1]:
                     deps_skip = 1
                     break
+
+            if not deps_skip:
+                print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
+                macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
 
             if port_share == 0 and not deps_skip:
                 deps_list += macp_hostname+';'+port_hostname+';'+port_data[1]+'\n'
@@ -95,7 +102,25 @@ for macp in macp_reader:
         pidx=0
         port_hostname = port_data[pidx+3].split('.')[0]
         port_ip = port_data[pidx+2]
-        if  macp[0] != prev_maca:
+        if port_hostname == '':
+            port_hostname = port_ip
+
+        deps_skip = 0
+        for deps in deps_list.split('\n'):
+            deps = deps.split(';')
+            if len(deps) > 2 and deps[0] == macp_hostname and deps[1] == port_hostname and deps[2] == port_data[1]:
+                deps_skip = 1
+                break
+
+        foun_skip = 0
+        for foun in foun_list.split('\n'):
+            foun = foun.split(';')
+            if len(foun) > 2 and foun[0] == macp_hostname and foun[1] == port_hostname and foun[2] == port_data[1]:
+                foun_skip = 1
+                break
+
+        if macp[0] != prev_maca and not (deps_skip or foun_skip):
+            foun_list += macp_hostname+';'+port_hostname+';'+port_data[1]+'\n'
             local_port = ''
             if macp[0] == arpa:
                 local_port = 'arp'
