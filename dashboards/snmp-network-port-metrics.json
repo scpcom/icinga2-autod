@@ -596,8 +596,8 @@
                 {
                   "condition": "AND",
                   "key": "metric",
-                  "operator": "=",
-                  "value": "Physical_Memory"
+                  "operator": "=~",
+                  "value": "/^Physical_Memory|^Random_Access_Memory|^RAM/"
                 }
               ]
             },
@@ -646,8 +646,8 @@
                 {
                   "condition": "AND",
                   "key": "metric",
-                  "operator": "=",
-                  "value": "Physical_Memory"
+                  "operator": "=~",
+                  "value": "/^Physical_Memory|^Random_Access_Memory|^RAM/"
                 }
               ]
             },
@@ -696,8 +696,8 @@
                 {
                   "condition": "AND",
                   "key": "metric",
-                  "operator": "=",
-                  "value": "Physical_Memory"
+                  "operator": "=~",
+                  "value": "/^Physical_Memory|^Random_Access_Memory|^RAM/"
                 }
               ]
             },
@@ -746,8 +746,8 @@
                 {
                   "condition": "AND",
                   "key": "metric",
-                  "operator": "=",
-                  "value": "Physical_Memory"
+                  "operator": "=~",
+                  "value": "/^Physical_Memory|^Random_Access_Memory|^RAM/"
                 }
               ]
             }
