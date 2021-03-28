@@ -298,6 +298,10 @@ def compile_hosts(data, location):
 	ifentries = 0
 	is_comware = "false"
 	is_hp1810v2 = "false"
+	is_dgs3100 = "false"
+	is_dgs3100s1 = "false"
+	is_dgs3100s2 = "false"
+	is_dgs3100s3 = "false"
 	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port']
 	alias_filter = ['MAC Layer LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
 	type_filter = [1, 23, 24, 53, 131, 161]
@@ -344,6 +348,8 @@ def compile_hosts(data, location):
                     for filtyp in type_filter:
                         if ifty == filtyp:
                             ifskip = 1
+                    if ifna.startswith('ch') and len(ifna) < 5:
+                        ifskip = 1
 
                     if ifskip == 0 and ifno < iffirst:
                         iffirst = ifno
@@ -355,6 +361,15 @@ def compile_hosts(data, location):
                         is_comware = "true"
                     if ifna.startswith('Port  '):
                         is_hp1810v2 = "true"
+                    if ifna.startswith('1:'):
+                        is_dgs3100 = "true"
+                        is_dgs3100s1 = "true"
+                    if ifna.startswith('2:'):
+                        is_dgs3100 = "true"
+                        is_dgs3100s2 = "true"
+                    if ifna.startswith('3:'):
+                        is_dgs3100 = "true"
+                        is_dgs3100s3 = "true"
 
 	chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
 	if chassisid != '':
@@ -566,6 +581,14 @@ def compile_hosts(data, location):
 	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
 	if is_hp1810v2 == "true":
 	    hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
+	if is_dgs3100 == "true":
+	    hostvars += 'vars.network_dgs3100 = "' + is_dgs3100 + '"' +'\n  '
+	if is_dgs3100s1 == "true":
+	    hostvars += 'vars.network_dgs3100s1 = "' + is_dgs3100s1 + '"' +'\n  '
+	if is_dgs3100s2 == "true":
+	    hostvars += 'vars.network_dgs3100s2 = "' + is_dgs3100s2 + '"' +'\n  '
+	if is_dgs3100s3 == "true":
+	    hostvars += 'vars.network_dgs3100s3 = "' + is_dgs3100s3 + '"' +'\n  '
 	if ifcount > 0:
 	    if iffirst < ifcount:
 	        ifcount = ifcount - iffirst + 1
@@ -619,6 +642,10 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     linevars = hostvars.split('\n')
     is_comware = "false"
     is_hp1810v2 = "false"
+    is_dgs3100 = "false"
+    is_dgs3100s1 = "false"
+    is_dgs3100s2 = "false"
+    is_dgs3100s3 = "false"
     is_switch = "false"
     ifcount = 0
     for line in linevars:
@@ -626,6 +653,14 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             is_comware = line.split(' = ')[1].strip('"')
         if 'vars.network_hp1810v2 = ' in line:
             is_hp1810v2 = line.split(' = ')[1].strip('"')
+        if 'vars.network_dgs3100 = ' in line:
+            is_dgs3100 = line.split(' = ')[1].strip('"')
+        if 'vars.network_dgs3100s1 = ' in line:
+            is_dgs3100s1 = line.split(' = ')[1].strip('"')
+        if 'vars.network_dgs3100s2 = ' in line:
+            is_dgs3100s2 = line.split(' = ')[1].strip('"')
+        if 'vars.network_dgs3100s3 = ' in line:
+            is_dgs3100s3 = line.split(' = ')[1].strip('"')
         if 'vars.network_switch = ' in line:
             is_switch = line.split(' = ')[1].strip('"')
         if 'vars.network_ports = ' in line:
@@ -638,6 +673,12 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
         elif is_hp1810v2 == "true":
             host_entry += '  import "hp1810v2-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_dgs3100s1 == "true":
+            host_entry += '  import "dgs3100s1-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_dgs3100s2 == "true":
+            host_entry += '  import "dgs3100s2-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_dgs3100s3 == "true":
+            host_entry += '  import "dgs3100s3-int-{0}-ports-template"\n'.format(ifcount)
         else:
             host_entry += '  import "int-{0}-ports-template"\n'.format(ifcount)
 
