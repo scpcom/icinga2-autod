@@ -94,7 +94,10 @@ for macp in macp_reader:
                 host_deps += 'apply Dependency "switching" to Service {' +'\n'
                 host_deps += '  parent_host_name = "' + port_hostname + '"' +'\n'
                 host_deps += '  parent_service_name = "' + parent_service + '"' +'\n'
-                host_deps += '  disable_checks = true' +'\n'
+                if deps_reve:
+                    host_deps += '  disable_notifications = true' +'\n'
+                else:
+                    host_deps += '  disable_checks = true' +'\n'
                 host_deps += '' +'\n'
                 host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
                 host_deps += '}' +'\n'
