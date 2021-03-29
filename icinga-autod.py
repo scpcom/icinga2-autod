@@ -289,6 +289,17 @@ def compile_hosts(data, location):
 	    if hostname != hdata['hostname']:
 	        hostfqdn = hdata['hostname']
 
+	if have_snmp == 0:
+	    syssnmp = 0
+	    ret, output, err = exec_command('nmap -sU -p161 {0}'.format(ip))
+	    if ret and err:
+	        syssnmp = 0
+	    else:
+	        syssnmp = parse_nmap_port_scan(output, '161/udp ')
+
+	    if syssnmp == 1:
+	        print str(ip) + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.'
+
 	# .3.6.1.2.1.2.2.1.2     ifDescr
 	# .3.6.1.2.1.2.2.1.3     ifType
 	# .3.6.1.2.1.2.2.1.6     ifPhysAddress
@@ -629,7 +640,8 @@ def compile_hosts(data, location):
 	    if hdata['snmp_version'] == '2c':
 	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
 
-        hostvars += 'vars.snmp_interface_ifname = ' + snmp_interface_ifname +'\n  '
+        if have_snmp:
+            hostvars += 'vars.snmp_interface_ifname = ' + snmp_interface_ifname +'\n  '
         if snmp_interface_64bit == "true":
             hostvars += 'vars.snmp_interface_64bit = ' + snmp_interface_64bit +'\n  '
         if snmp_interface_speed64bit == "true":
