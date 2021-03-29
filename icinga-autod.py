@@ -281,10 +281,13 @@ def compile_hosts(data, location):
 	if hdata['syslocation'] != '':
 		hostlocation = hdata['syslocation']
 
+	hostfqdn = ''
 	if not hdata['hostname']:
 	    hostname = ip
 	else:
-	    hostname = hdata['hostname']
+	    hostname = hdata['hostname'].split('.')[0]
+	    if hostname != hdata['hostname']:
+	        hostfqdn = hdata['hostname']
 
 	# .3.6.1.2.1.2.2.1.2     ifDescr
 	# .3.6.1.2.1.2.2.1.3     ifType
