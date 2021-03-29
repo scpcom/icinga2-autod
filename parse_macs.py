@@ -63,24 +63,37 @@ for macp in macp_reader:
             local_service = 'snmp-int-port'+local_port
             if local_port == 'arp':
                 local_service = 'ping4'
+            parent_service = 'snmp-int-port'+port_data[1]
 
             deps_skip = 0
+            deps_reve = 0
+            deps_dupl = 0
             for deps in deps_list.split('\n'):
                 deps = deps.split(';')
-                if len(deps) > 2 and deps[0] == macp_hostname and deps[1] == port_hostname and deps[2] == port_data[1]:
+                if len(deps) > 3 and deps[0] == macp_hostname and deps[2] == port_hostname and deps[3] == port_data[1]:
                     deps_skip = 1
                     break
+                elif len(deps) > 3 and deps[0] == port_hostname and deps[2] == macp_hostname and deps[3] == local_port:
+                    deps_reve = 1
+                elif len(deps) > 3 and deps[0] == macp_hostname and deps[2] == port_hostname:
+                    deps_dupl = 1
+                elif len(deps) > 3 and deps[0] == port_hostname and deps[2] == macp_hostname:
+                    deps_dupl = 1
+            if deps_reve and not deps_skip:
+                print 'WARNING: reverse dependency found for:'
+            elif deps_dupl and not deps_skip:
+                print 'WARNING: duplicate dependency found for:'
 
             if not deps_skip:
                 print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
                 macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
 
             if port_share == 0 and not deps_skip:
-                deps_list += macp_hostname+';'+port_hostname+';'+port_data[1]+'\n'
+                deps_list += macp_hostname+';'+local_port+';'+port_hostname+';'+port_data[1]+'\n'
                 host_deps = ''
                 host_deps += 'apply Dependency "switching" to Service {' +'\n'
                 host_deps += '  parent_host_name = "' + port_hostname + '"' +'\n'
-                host_deps += '  parent_service_name = "' +'snmp-int-port'+port_data[1] + '"' +'\n'
+                host_deps += '  parent_service_name = "' + parent_service + '"' +'\n'
                 host_deps += '  disable_checks = true' +'\n'
                 host_deps += '' +'\n'
                 host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
@@ -108,7 +121,7 @@ for macp in macp_reader:
         deps_skip = 0
         for deps in deps_list.split('\n'):
             deps = deps.split(';')
-            if len(deps) > 2 and deps[0] == macp_hostname and deps[1] == port_hostname and deps[2] == port_data[1]:
+            if len(deps) > 3 and deps[0] == macp_hostname and deps[2] == port_hostname and deps[3] == port_data[1]:
                 deps_skip = 1
                 break
 
