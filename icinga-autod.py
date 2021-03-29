@@ -371,6 +371,13 @@ def compile_hosts(data, location):
                         is_dgs3100 = "true"
                         is_dgs3100s3 = "true"
 
+	fix_portno = 0
+	if is_dgs3100 == "true":
+	    fix_portno = 1
+	if ifcount > 0:
+	    if iffirst > 1 and iffirst < ifcount:
+	        fix_portno = 1
+
 	chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
 	if chassisid != '':
 		chassisid = ':'.join(chassisid.split(' ')[:-1])
@@ -439,10 +446,13 @@ def compile_hosts(data, location):
                             ifskip = 1
                     if ifna.startswith('ch') and len(ifna) < 5:
                         ifskip = 1
+                    if fix_portno:
+                        if ifno >= iffirst:
+                            ifno = ifno+1-iffirst
+                        else:
+                            ifno = ifno+1+ifcount-iffirst
 
                     if maca and maca != '':
-                        if is_dgs3100 == "true":
-                            ifno = ifno+1-iffirst
                         if ifentries < 8 and ifad == 1 and ifop == 1 and not ifskip:
                             if ifna == '':
                                 ifna = ifde
