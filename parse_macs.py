@@ -5,6 +5,7 @@ import re
 macp_filename = 'discovered_hosts_mac_ports.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
 deps_filename = macp_filename[:-14] + '_deps.conf'
+dups_filename = macp_filename[:-14] + '_dups.conf'
 lldt_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_lldp\.csv', f)]
 mact_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_table\.csv', f)]
 macp_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_ports\.csv', f)]
@@ -27,6 +28,7 @@ for macp_filename in macp_filenames:
 macf_f = open(macf_filename, 'w')
 macf_f.write('port-mac;port-host-ip;port-host-name;port-id;remote-host-ip;remote-host-name;remote-id;shared-count' +'\n');
 deps_f = open(deps_filename, 'w')
+dups_f = open(dups_filename, 'w')
 deps_list = ''
 foun_list = ''
 prev_maca = ''
@@ -68,6 +70,7 @@ for macp in macp_reader:
             deps_skip = 0
             deps_reve = 0
             deps_dupl = 0
+            port_dupl = 0
             for deps in deps_list.split('\n'):
                 deps = deps.split(';')
                 if len(deps) > 3 and deps[0] == macp_hostname and deps[2] == port_hostname and deps[3] == port_data[1]:
@@ -77,12 +80,16 @@ for macp in macp_reader:
                     deps_reve = 1
                 elif len(deps) > 3 and deps[0] == macp_hostname and deps[2] == port_hostname:
                     deps_dupl = 1
+                    if deps[1] == local_port:
+                        port_dupl = 1
                 elif len(deps) > 3 and deps[0] == port_hostname and deps[2] == macp_hostname:
                     deps_dupl = 1
             if deps_reve and not deps_skip:
                 print 'WARNING: reverse dependency found for:'
+            elif port_dupl and not deps_skip:
+                print 'WARNING: duplicate port dependency found for:'
             elif deps_dupl and not deps_skip:
-                print 'WARNING: duplicate dependency found for:'
+                print 'WARNING: duplicate host dependency found for:'
 
             if not deps_skip:
                 print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
@@ -101,7 +108,10 @@ for macp in macp_reader:
                 host_deps += '' +'\n'
                 host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
                 host_deps += '}' +'\n'
-                deps_f.write(host_deps)
+                if port_dupl:
+                    dups_f.write(host_deps)
+                else:
+                    deps_f.write(host_deps)
             prev_maca = macp[0]
 
     for mact in mact_reader:
@@ -147,3 +157,4 @@ for macp in macp_reader:
         print macp[0] + ' ' + macp_ip + ' port ' + macp[1] + ' not found'
 macf_f.close()
 deps_f.close()
+dups_f.close()
