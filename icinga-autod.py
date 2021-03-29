@@ -441,7 +441,7 @@ def compile_hosts(data, location):
                         ifskip = 1
 
                     if maca and maca != '':
-                        if is_dgs3100:
+                        if is_dgs3100 == "true":
                             ifno = ifno+1-iffirst
                         if ifentries < 8 and ifad == 1 and ifop == 1 and not ifskip:
                             if ifna == '':
@@ -469,7 +469,7 @@ def compile_hosts(data, location):
                     ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
                     line = line.split(' = ')[0]
                     line = line.split('.')[14:]
-                    if is_dgs3100:
+                    if is_dgs3100 == "true":
                         ifno = ifno+1-iffirst
                     ifno = str(ifno)
                     if int(ifno) < 10:
@@ -494,7 +494,7 @@ def compile_hosts(data, location):
                     ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
                     line = line.split(' = ')[0]
                     line = line.split('.')[11:]
-                    if is_dgs3100:
+                    if is_dgs3100 == "true":
                         ifno = ifno+1-iffirst
                     ifno = str(ifno)
                     if int(ifno) < 10:
@@ -517,7 +517,7 @@ def compile_hosts(data, location):
                     ifno = int(line.split('.')[12:][0])
                     line = '.'.join(line.split('.')[13:])
                     ifnr = line.split(' = ')[0]
-                    if is_dgs3100:
+                    if is_dgs3100 == "true":
                         ifno = ifno+1-iffirst
                     ifno = str(ifno)
                     if int(ifno) < 10:
