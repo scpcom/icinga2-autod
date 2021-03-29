@@ -437,8 +437,12 @@ def compile_hosts(data, location):
                     for filtyp in type_filter:
                         if ifty == filtyp:
                             ifskip = 1
+                    if ifna.startswith('ch') and len(ifna) < 5:
+                        ifskip = 1
 
                     if maca and maca != '':
+                        if is_dgs3100:
+                            ifno = ifno+1-iffirst
                         if ifentries < 8 and ifad == 1 and ifop == 1 and not ifskip:
                             if ifna == '':
                                 ifna = ifde
@@ -462,9 +466,12 @@ def compile_hosts(data, location):
             print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
-                    ifno = ': '.join(line.split(': ')[1:]).strip('"')
+                    ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
                     line = line.split(' = ')[0]
                     line = line.split('.')[14:]
+                    if is_dgs3100:
+                        ifno = ifno+1-iffirst
+                    ifno = str(ifno)
                     if int(ifno) < 10:
                         ifno = '0'+ifno
                     maca = ''
@@ -484,9 +491,12 @@ def compile_hosts(data, location):
             print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.4.3.1.2.' in line:
-                    ifno = ': '.join(line.split(': ')[1:]).strip('"')
+                    ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
                     line = line.split(' = ')[0]
                     line = line.split('.')[11:]
+                    if is_dgs3100:
+                        ifno = ifno+1-iffirst
+                    ifno = str(ifno)
                     if int(ifno) < 10:
                         ifno = '0'+ifno
                     maca = ''
@@ -504,9 +514,12 @@ def compile_hosts(data, location):
                 print str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table'
             for line in output:
                 if '.0.8802.1.1.2.1.4.1.1.5.' in line:
-                    ifno = line.split('.')[12:][0]
+                    ifno = int(line.split('.')[12:][0])
                     line = '.'.join(line.split('.')[13:])
                     ifnr = line.split(' = ')[0]
+                    if is_dgs3100:
+                        ifno = ifno+1-iffirst
+                    ifno = str(ifno)
                     maca = ': '.join(line.split(': ')[1:]).strip('"').replace(' ', ':').replace('-', ':').upper()
                     if maca[-1:] == ':':
                         maca = maca[:-1]
