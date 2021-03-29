@@ -5,7 +5,8 @@ import re
 macp_filename = 'discovered_hosts_mac_ports.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
 deps_filename = macp_filename[:-14] + '_deps.conf'
-dups_filename = macp_filename[:-14] + '_dups.conf'
+dups_filename = macp_filename[:-14] + '_deps_dups.conf'
+revs_filename = macp_filename[:-14] + '_deps_revs.conf'
 lldt_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_lldp\.csv', f)]
 mact_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_table\.csv', f)]
 macp_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_ports\.csv', f)]
@@ -29,6 +30,7 @@ macf_f = open(macf_filename, 'w')
 macf_f.write('port-mac;port-host-ip;port-host-name;port-id;remote-host-ip;remote-host-name;remote-id;shared-count' +'\n');
 deps_f = open(deps_filename, 'w')
 dups_f = open(dups_filename, 'w')
+revs_f = open(revs_filename, 'w')
 deps_list = ''
 foun_list = ''
 prev_maca = ''
@@ -110,7 +112,9 @@ for macp in macp_reader:
                 host_deps += '' +'\n'
                 host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
                 host_deps += '}' +'\n'
-                if port_dupl:
+                if deps_reve:
+                    revs_f.write(host_deps)
+                elif port_dupl:
                     dups_f.write(host_deps)
                 else:
                     deps_f.write(host_deps)
@@ -160,3 +164,4 @@ for macp in macp_reader:
 macf_f.close()
 deps_f.close()
 dups_f.close()
+revs_f.close()
