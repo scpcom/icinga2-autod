@@ -316,7 +316,7 @@ def compile_hosts(data, location):
 	is_dgs3100s1 = "false"
 	is_dgs3100s2 = "false"
 	is_dgs3100s3 = "false"
-	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port']
+	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr']
 	alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
 	type_filter = [1, 23, 24, 53, 131, 161]
 
@@ -367,6 +367,16 @@ def compile_hosts(data, location):
                             break
                     if ifna.startswith('ch') and len(ifna) < 5:
                         ifskip = 1
+                    if ifna.startswith('tap') or  ifna.startswith('vif'):
+                        iftmp = ifna[3:].split('.')
+                        elskip = 1
+                        for ifelement in iftmp:
+                            if len(ifelement) > 4:
+                                elskip = 0
+                        if len(iftmp) > 2:
+                            elskip = 0
+                        if elskip:
+                            ifskip = 1
 
                     if ifskip == 0 and ifno < iffirst:
                         iffirst = ifno
@@ -466,6 +476,18 @@ def compile_hosts(data, location):
                             break
                     if ifna.startswith('ch') and len(ifna) < 5:
                         ifskip = 1
+                    if ifna.startswith('tap') or  ifna.startswith('vif'):
+                        iftmp = ifna[3:].split('.')
+                        elskip = 1
+                        for ifelement in iftmp:
+                            if len(ifelement) > 4:
+                                elskip = 0
+                        if len(iftmp) > 2:
+                            elskip = 0
+                        if elskip:
+                            print ifna
+                            ifskip = 1
+
                     if fix_portno:
                         if ifno >= iffirst:
                             ifno = ifno+1-iffirst
@@ -570,7 +592,7 @@ def compile_hosts(data, location):
 		snmp_load_type = "netsl"
 
 	snmp_is_netsnmp = "false"
-	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6.0'):
+	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6'):
 		snmp_is_netsnmp = "true"
 
 	snmp_is_hp = "false"
@@ -620,7 +642,7 @@ def compile_hosts(data, location):
                         snmp_storage_mem_name=stna
                     elif stty == 3:
                         snmp_storage_swap_name=stna
-                    elif stty == 4 and snmp_storage_disk_name == '':
+                    elif stty == 4 and snmp_storage_disk_name == '' or stna == '/':
                         snmp_storage_disk_name=stna
 
 	#print str(ifcount) + ' interfaces'
@@ -663,11 +685,13 @@ def compile_hosts(data, location):
             hostvars += 'vars.snmp_is_netsnmp = "' + snmp_is_netsnmp + '"' +'\n  '
         if snmp_is_hp == "true":
             hostvars += 'vars.snmp_is_hp = "' + snmp_is_hp + '"' +'\n  '
-        if snmp_storage_mem_name != '':
+        if snmp_storage_mem_name != '' and snmp_is_netsnmp == "false" and snmp_is_hp == "false":
              hostvars += 'vars.snmp_storage_mem_name = "' + snmp_storage_mem_name + '"' +'\n  '
-        if snmp_storage_swap_name != '':
+        if snmp_storage_swap_name != '' and snmp_is_netsnmp == "false" and snmp_is_hp == "false":
              hostvars += 'vars.snmp_storage_swap_name = "' + snmp_storage_swap_name + '"' +'\n  '
         if snmp_storage_disk_name != '':
+             if snmp_storage_disk_name.startswith('/'):
+                 snmp_storage_disk_name = '^'+snmp_storage_disk_name+'$$'
              hostvars += 'vars.snmp_storage_disk_name = "' + snmp_storage_disk_name + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
