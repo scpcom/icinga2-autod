@@ -65,7 +65,9 @@ for macp in macp_reader:
             local_service = 'snmp-int-port'+local_port
             if local_port == 'arp':
                 local_service = 'ping4'
-            parent_service = 'snmp-int-port'+port_data[1]
+            elif local_port != '':
+                local_service = 'snmp-int-port'+str(int(local_port))
+            parent_service = 'snmp-int-port'+str(int(port_data[1]))
 
             deps_skip = 0
             deps_reve = 0

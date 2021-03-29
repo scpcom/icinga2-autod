@@ -520,6 +520,10 @@ def compile_hosts(data, location):
                     if is_dgs3100:
                         ifno = ifno+1-iffirst
                     ifno = str(ifno)
+                    if int(ifno) < 10:
+                        ifno = '0'+ifno
+                    if int(ifnr) < 10:
+                        ifnr = '0'+ifnr
                     maca = ': '.join(line.split(': ')[1:]).strip('"').replace(' ', ':').replace('-', ':').upper()
                     if maca[-1:] == ':':
                         maca = maca[:-1]
