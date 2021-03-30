@@ -47,7 +47,7 @@ def build_parser():
     parser = argparse.ArgumentParser(description='Device AutoDiscovery Tool')
 
     parser.add_argument('-n', '--network', required=True,
-	help='Network segment (only /24) to iterate through for live IP addresses in CIDR IPv4 Notation')
+        help='Network segment (only /24) to iterate through for live IP addresses in CIDR IPv4 Notation')
 
     parser.add_argument('-L', '--location', default=None,
         help='Location alias of the network - will be appended to the hosts config (i.e. hosts_location.conf)')
@@ -76,13 +76,13 @@ def main():
 
     '''Check arguments'''    
     if check_args(args) is False:
-	sys.stderr.write("There was a problem validating the arguments supplied. Please check your input and try again. Exiting...\n")
-	sys.exit(1)
+        sys.stderr.write("There was a problem validating the arguments supplied. Please check your input and try again. Exiting...\n")
+        sys.exit(1)
 
     if args.debug:
         debug = True
     else:
-	debug = False
+        debug = False
     
     start_time = time.time()
 
@@ -105,25 +105,25 @@ def main():
     print("Found {0} hosts - gathering more info (can take up to 2 minutes)".format(get_count(hosts)))
 
     try:
-	with open('iana_numbers.json', 'r') as f:
-	    numbers = json.load(f)
+        with open('iana_numbers.json', 'r') as f:
+            numbers = json.load(f)
     except Exception, e:
-	try:
+        try:
     	    numbers = ianaparse.IanaParser().parse()
-	except:
-	    sys.exit("Unable to open iana_numbers.json or read from the URL. Exiting...")
+        except:
+            sys.exit("Unable to open iana_numbers.json or read from the URL. Exiting...")
 
-	sys.stderr.write('Unable to open iana_numbers.json, trying URL method. Please wait\n')
+        sys.stderr.write('Unable to open iana_numbers.json, trying URL method. Please wait\n')
 
 
     for host in hosts:
-	host = str(host)
+        host = str(host)
 
-	'''If your communities/versions vary, modify credentials here. I've used last_octet to do this determination
-	        octets = host.split('.')
+        '''If your communities/versions vary, modify credentials here. I've used last_octet to do this determination
+                octets = host.split('.')
                 last_octet = str(octets[3]).strip()
-	   Otherwise, grab the data
-	'''
+           Otherwise, grab the data
+        '''
 
         hostname = ''
         hostmac = ''
@@ -141,7 +141,7 @@ def main():
             community = data['community']
             snmp_version = data['version']
 
-	    hostname = output[0].strip('"')
+            hostname = output[0].strip('"')
             sysdesc = output[1].strip('"').strip('\r')
             syslocation = output[-3].strip('"')
             sysobject = output[-2].strip('"') 
@@ -154,19 +154,19 @@ def main():
             syslocation = ''
             sysdesc = ''
             sysobject = ''
-	
-	v_match = vendor_match(numbers, sysobject)	
+        
+        v_match = vendor_match(numbers, sysobject)	
 
-	if v_match:
-	    vendor = v_match['o'].strip('"')
-	else:
-	    vendor = None
-	    
-	all_hosts[host] = { 
-	    'community': community, 'snmp_version': snmp_version, 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
+        if v_match:
+            vendor = v_match['o'].strip('"')
+        else:
+            vendor = None
+            
+        all_hosts[host] = { 
+            'community': community, 'snmp_version': snmp_version, 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
-	if debug:
-	    print host, sysobject, all_hosts[host]
+        if debug:
+            print host, sysobject, all_hosts[host]
 
     print "\n"
     print("Discovery took %s seconds" % (time.time() - start_time))
@@ -177,58 +177,58 @@ def main():
 
 def vendor_match(numbers, sysobject):
     if sysobject:
-	#Possible prefixes in sysObjectID OID largely dependent on MIB used
-	prefixes = ['SNMPv2-SMI::enterprises.', 'iso.3.6.1.4.1.', '1.3.6.1.4.1.', 'NET-SNMP-MIB::netSnmpAgentOIDs.']
-	
-	for prefix in prefixes:
-	    if sysobject.startswith(prefix):
-	        sysobject = sysobject[len(prefix):]
-	
-	values = sysobject.split('.')
-	#first value will be the enterprise number
-	vendor_num = values[0]
+        #Possible prefixes in sysObjectID OID largely dependent on MIB used
+        prefixes = ['SNMPv2-SMI::enterprises.', 'iso.3.6.1.4.1.', '1.3.6.1.4.1.', 'NET-SNMP-MIB::netSnmpAgentOIDs.']
+        
+        for prefix in prefixes:
+            if sysobject.startswith(prefix):
+                sysobject = sysobject[len(prefix):]
+        
+        values = sysobject.split('.')
+        #first value will be the enterprise number
+        vendor_num = values[0]
 
-	try:
-	    vendor_string = numbers[vendor_num]
-	    return vendor_string
+        try:
+            vendor_string = numbers[vendor_num]
+            return vendor_string
 
-	except Exception, e:
-	    sys.stderr.write('Unknown sysObjectID prefix encountered - you can add it to the prefix list in vendor_match(), but please report this on GitHub\n'+str(e))
-	    return False
+        except Exception, e:
+            sys.stderr.write('Unknown sysObjectID prefix encountered - you can add it to the prefix list in vendor_match(), but please report this on GitHub\n'+str(e))
+            return False
     else:
-	return False
+        return False
 
 def check_args(args):
     '''Exit if required arguments not specified'''
     '''
     if args.network == None:
-	sys.stderr.write("Network and/or location are required arguments! Use -h for help\n")
-	sys.exit(1)
+        sys.stderr.write("Network and/or location are required arguments! Use -h for help\n")
+        sys.exit(1)
     '''
     check_flags = {}
     '''Iterate through specified args and make sure input is valid. TODO: add more flags'''
     for k,v in vars(args).iteritems():
         if k == 'network':
-	    network = v.split('/')[0]
-	    if len(network) > 7:
-	    	if is_valid_ipv4_address(network) is False:
-		    check_flags['is_valid_ipv4_address'] = False
-	    else:	
-		check_flags['is_valid_ipv4_format'] = False
-		
+            network = v.split('/')[0]
+            if len(network) > 7:
+            	if is_valid_ipv4_address(network) is False:
+        	    check_flags['is_valid_ipv4_address'] = False
+            else:	
+        	check_flags['is_valid_ipv4_format'] = False
+        	
     last_idx = len(check_flags) - 1
     last_key = ''
 
     '''Find last index key so all the violated flags can be output in the next loop'''
     for idx, key in enumerate(check_flags):
-	if idx == last_idx:
-	    last_key = key
-	
+        if idx == last_idx:
+            last_key = key
+        
     for flag, val in check_flags.iteritems():
         if val is False:
-	    sys.stderr.write("Check "+flag+" failed to validate your input.\n")
-	    if flag == last_key:
-		return False 
+            sys.stderr.write("Check "+flag+" failed to validate your input.\n")
+            if flag == last_key:
+        	return False 
 
 def is_valid_ipv4_address(address):
     '''from http://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python'''
@@ -248,17 +248,17 @@ def is_valid_ipv4_address(address):
 def get_count(hosts):
     count = len(hosts)
     if count == 0:
-	print "No hosts found! Is the network reachable? \nExiting..."
-	sys.exit(0)
+        print "No hosts found! Is the network reachable? \nExiting..."
+        sys.exit(0)
     else:
         return count
 
 def compile_hosts(data, location):
     if location: 
-	loc = location.lower()
+        loc = location.lower()
         filename = 'hosts_'+loc+'.conf'
     else:
-	filename = 'discovered_hosts.conf'
+        filename = 'discovered_hosts.conf'
 
     macp_filename = filename.replace('.conf', '_mac_ports.csv')
     mact_filename = filename.replace('.conf', '_mac_table.csv')
@@ -270,65 +270,65 @@ def compile_hosts(data, location):
     lldt_f = open(lldt_filename, 'w')
 
     for ip, hdata in data.iteritems():
-	have_snmp = 0
-	if hdata['community'] != '' and  hdata['community'] != 'unknown':
-	    have_snmp = 1
+        have_snmp = 0
+        if hdata['community'] != '' and  hdata['community'] != 'unknown':
+            have_snmp = 1
 
-	devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
+        devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
 
-	hostvars = compile_hvars(hdata['sysdesc'], devdesc)
-	hostlocation = location
-	if hdata['syslocation'] != '':
-		hostlocation = hdata['syslocation']
+        hostvars = compile_hvars(hdata['sysdesc'], devdesc)
+        hostlocation = location
+        if hdata['syslocation'] != '':
+        	hostlocation = hdata['syslocation']
 
-	hostfqdn = ''
-	if not hdata['hostname']:
-	    hostname = ip
-	else:
-	    hostname = hdata['hostname'].split('.')[0]
-	    if hostname != hdata['hostname']:
-	        hostfqdn = hdata['hostname']
+        hostfqdn = ''
+        if not hdata['hostname']:
+            hostname = ip
+        else:
+            hostname = hdata['hostname'].split('.')[0]
+            if hostname != hdata['hostname']:
+                hostfqdn = hdata['hostname']
 
-	if have_snmp == 0:
-	    syssnmp = 0
-	    ret, output, err = exec_command('nmap -sU -p161 {0}'.format(ip))
-	    if ret and err:
-	        syssnmp = 0
-	    else:
-	        syssnmp = parse_nmap_port_scan(output, '161/udp ')
+        if have_snmp == 0:
+            syssnmp = 0
+            ret, output, err = exec_command('nmap -sU -p161 {0}'.format(ip))
+            if ret and err:
+                syssnmp = 0
+            else:
+                syssnmp = parse_nmap_port_scan(output, '161/udp ')
 
-	    if syssnmp == 1:
-	        print str(ip) + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.'
+            if syssnmp == 1:
+                print str(ip) + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.'
 
-	# .3.6.1.2.1.2.2.1.2     ifDescr
-	# .3.6.1.2.1.2.2.1.3     ifType
-	# .3.6.1.2.1.2.2.1.6     ifPhysAddress
-	# .3.6.1.2.1.2.2.1.7     ifAdminStatus
-	# .3.6.1.2.1.2.2.1.8     ifOperStatus
-	# .3.6.1.2.1.31.1.1.1.1  ifName
-	# .3.6.1.2.1.31.1.1.1.18 ifAlias
-	iffirst = 999999
-	ifcount = 0
-	ifentries = 0
-	is_comware = "false"
-	is_hp1810v2 = "false"
-	is_dgs3100 = "false"
-	is_dgs3100s1 = "false"
-	is_dgs3100s2 = "false"
-	is_dgs3100s3 = "false"
-	port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr']
-	alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
-	type_filter = [1, 23, 24, 53, 131, 161]
+        # .3.6.1.2.1.2.2.1.2     ifDescr
+        # .3.6.1.2.1.2.2.1.3     ifType
+        # .3.6.1.2.1.2.2.1.6     ifPhysAddress
+        # .3.6.1.2.1.2.2.1.7     ifAdminStatus
+        # .3.6.1.2.1.2.2.1.8     ifOperStatus
+        # .3.6.1.2.1.31.1.1.1.1  ifName
+        # .3.6.1.2.1.31.1.1.1.18 ifAlias
+        iffirst = 999999
+        ifcount = 0
+        ifentries = 0
+        is_comware = "false"
+        is_hp1810v2 = "false"
+        is_dgs3100 = "false"
+        is_dgs3100s1 = "false"
+        is_dgs3100s2 = "false"
+        is_dgs3100s3 = "false"
+        port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr']
+        alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
+        type_filter = [1, 23, 24, 53, 131, 161]
 
-	desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
-	type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
-	phys_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
-	admi_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.7')
-	oper_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.8')
-	name_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
-	alias_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.18')
+        desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
+        type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
+        phys_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.6')
+        admi_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.7')
+        oper_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.8')
+        name_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.1')
+        alias_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.18')
 
-	if len(name_output) > 0:
+        if len(name_output) > 0:
             for line in name_output:
                 if '.3.6.1.2.1.31.1.1.1.1.' in line:
                     line = '.'.join(line.split('.')[11:])
@@ -398,24 +398,24 @@ def compile_hosts(data, location):
                         is_dgs3100 = "true"
                         is_dgs3100s3 = "true"
 
-	fix_portno = 0
-	if is_dgs3100 == "true":
-	    fix_portno = 1
-	if ifcount > 0:
-	    if iffirst > 1 and iffirst < ifcount:
-	        fix_portno = 1
+        fix_portno = 0
+        if is_dgs3100 == "true":
+            fix_portno = 1
+        if ifcount > 0:
+            if iffirst > 1 and iffirst < ifcount:
+                fix_portno = 1
 
-	chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
-	if chassisid != '':
-		chassisid = ':'.join(chassisid.split(' ')[:-1])
+        chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
+        if chassisid != '':
+        	chassisid = ':'.join(chassisid.split(' ')[:-1])
 
-	if hdata['hostmac'] != '':
-	    #print str(ip) + ' ' + hdata['hostname'] + ' got Host MAC'
-	    macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
+        if hdata['hostmac'] != '':
+            #print str(ip) + ' ' + hdata['hostname'] + ' got Host MAC'
+            macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	portcount = 0
+        portcount = 0
 
-	if len(phys_output) > 0:
+        if len(phys_output) > 0:
             print str(ip) + ' ' + hdata['hostname'] + ' got Port IDs'
             if chassisid != '':
                 macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
@@ -511,10 +511,10 @@ def compile_hosts(data, location):
                         portcount = portcount + 1
                         macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	have_mact = 0
-	output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
+        have_mact = 0
+        output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
 
-	if len(output) > 0:
+        if len(output) > 0:
             print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
@@ -534,12 +534,12 @@ def compile_hosts(data, location):
                     have_mact = 1
                     mact_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	if have_mact == 0:
-	    output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.4.3.1.2')
-	else:
-	    output = list()
+        if have_mact == 0:
+            output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.4.3.1.2')
+        else:
+            output = list()
 
-	if len(output) > 0:
+        if len(output) > 0:
             print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
             for line in output:
                 if '.3.6.1.2.1.17.4.3.1.2.' in line:
@@ -558,10 +558,10 @@ def compile_hosts(data, location):
                         maca = maca + '{:02X}'.format(int(c))
                     mact_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	have_lldt = 0
-	output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.5')
+        have_lldt = 0
+        output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.5')
 
-	if len(output) > 0:
+        if len(output) > 0:
             if '.0.8802.1.1.2.1.4.1.1.5.' in output[0]:
                 print str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table'
             for line in output:
@@ -585,42 +585,42 @@ def compile_hosts(data, location):
                     have_lldt = 1
                     lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
-	snmp_load_type = ""
-	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
-		snmp_load_type = "stand"
-	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.10.1.2'):
-		snmp_load_type = "netsl"
+        snmp_load_type = ""
+        if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
+        	snmp_load_type = "stand"
+        if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.10.1.2'):
+        	snmp_load_type = "netsl"
 
-	snmp_is_netsnmp = "false"
-	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6'):
-		snmp_is_netsnmp = "true"
+        snmp_is_netsnmp = "false"
+        if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.4.6'):
+        	snmp_is_netsnmp = "true"
 
-	snmp_is_hp = "false"
-	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6'):
-		snmp_is_hp = "true"
+        snmp_is_hp = "false"
+        if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.11.2.14.11.5.1.1.2.2.1.1.6'):
+        	snmp_is_hp = "true"
 
-	snmp_interface_ifname = "false"
-	snmp_interface_64bit = "false"
-	snmp_interface_speed64bit = "false"
-	snmp_interface_perf = "true"
-	snmp_interface_bits_bytes = "true"
-	if len(name_output) > 0:
-		snmp_interface_ifname = "true"
-	if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.10'):
-		snmp_interface_64bit = "true"
-	elif snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.15'):
-		snmp_interface_speed64bit = "true"
-	elif not snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.16'):
-		snmp_interface_perf = "false"
-		snmp_interface_bits_bytes = "false"
+        snmp_interface_ifname = "false"
+        snmp_interface_64bit = "false"
+        snmp_interface_speed64bit = "false"
+        snmp_interface_perf = "true"
+        snmp_interface_bits_bytes = "true"
+        if len(name_output) > 0:
+        	snmp_interface_ifname = "true"
+        if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.10'):
+        	snmp_interface_64bit = "true"
+        elif snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.31.1.1.1.15'):
+        	snmp_interface_speed64bit = "true"
+        elif not snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.16'):
+        	snmp_interface_perf = "false"
+        	snmp_interface_bits_bytes = "false"
 
-	type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
-	desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.3')
+        type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.2')
+        desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.2.3.1.3')
 
         snmp_storage_mem_name=''
         snmp_storage_swap_name=''
         snmp_storage_disk_name=''
-	if len(desc_output) > 0:
+        if len(desc_output) > 0:
             for line in desc_output:
                 if '.3.6.1.2.1.25.2.3.1.3.' in line:
                     line = '.'.join(line.split('.')[11:])
@@ -645,28 +645,28 @@ def compile_hosts(data, location):
                     elif stty == 4 and snmp_storage_disk_name == '' or stna == '/':
                         snmp_storage_disk_name=stna
 
-	#print str(ifcount) + ' interfaces'
-	if is_comware == "true":
-	    hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
-	if is_hp1810v2 == "true":
-	    hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
-	if is_dgs3100 == "true":
-	    hostvars += 'vars.network_dgs3100 = "' + is_dgs3100 + '"' +'\n  '
-	if is_dgs3100s1 == "true":
-	    hostvars += 'vars.network_dgs3100s1 = "' + is_dgs3100s1 + '"' +'\n  '
-	if is_dgs3100s2 == "true":
-	    hostvars += 'vars.network_dgs3100s2 = "' + is_dgs3100s2 + '"' +'\n  '
-	if is_dgs3100s3 == "true":
-	    hostvars += 'vars.network_dgs3100s3 = "' + is_dgs3100s3 + '"' +'\n  '
-	if ifcount > 0:
-	    if iffirst < ifcount:
-	        ifcount = ifcount - iffirst + 1
-	    hostvars += 'vars.network_ports = ' + str(ifentries) +'\n  '
-	if hdata['community'] != '' and  hdata['community'] != 'unknown':
-	    hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
-	    hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
-	    if hdata['snmp_version'] == '2c':
-	        hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
+        #print str(ifcount) + ' interfaces'
+        if is_comware == "true":
+            hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
+        if is_hp1810v2 == "true":
+            hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
+        if is_dgs3100 == "true":
+            hostvars += 'vars.network_dgs3100 = "' + is_dgs3100 + '"' +'\n  '
+        if is_dgs3100s1 == "true":
+            hostvars += 'vars.network_dgs3100s1 = "' + is_dgs3100s1 + '"' +'\n  '
+        if is_dgs3100s2 == "true":
+            hostvars += 'vars.network_dgs3100s2 = "' + is_dgs3100s2 + '"' +'\n  '
+        if is_dgs3100s3 == "true":
+            hostvars += 'vars.network_dgs3100s3 = "' + is_dgs3100s3 + '"' +'\n  '
+        if ifcount > 0:
+            if iffirst < ifcount:
+                ifcount = ifcount - iffirst + 1
+            hostvars += 'vars.network_ports = ' + str(ifentries) +'\n  '
+        if hdata['community'] != '' and  hdata['community'] != 'unknown':
+            hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
+            hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
+            if hdata['snmp_version'] == '2c':
+                hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
 
         if have_snmp:
             hostvars += 'vars.snmp_interface_ifname = ' + snmp_interface_ifname +'\n  '
@@ -695,9 +695,9 @@ def compile_hosts(data, location):
              hostvars += 'vars.snmp_storage_disk_name = "' + snmp_storage_disk_name + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
-	host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
+        host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
 
-	f.write(host_entry)
+        f.write(host_entry)
 
     f.close()
     macp_f.close()
@@ -708,8 +708,8 @@ def compile_hosts(data, location):
 
 def build_host_entry(hostname, ip, location, vendor, hostvars):
     host_entry = ( 'object Host "%s" {\n'
-		   '  import "generic-host"\n'
-		 ) % (hostname)
+        	   '  import "generic-host"\n'
+        	 ) % (hostname)
 
     linevars = hostvars.split('\n')
     is_comware = "false"
@@ -756,9 +756,9 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     host_entry += '  address = "{0}"\n'.format(ip)
     if location:
-	host_entry += '  vars.location = "{0}"\n'.format(location)
+        host_entry += '  vars.location = "{0}"\n'.format(location)
     if vendor:
-	host_entry += '  vars.vendor = "{0}"\n'.format(vendor)
+        host_entry += '  vars.vendor = "{0}"\n'.format(vendor)
 
     sysssh = 0
     ret, output, err = exec_command('nmap -p22 {0}'.format(ip))
@@ -809,30 +809,30 @@ def parse_nmap_port_scan(data, match):
                 ret = 1
 
     return ret
-	
+        
 def compile_hvars(sysdesc, devdesc):
     sys_descriptors = {
-	'RouterOS': 'vars.network_mikrotik = "true"', 
-	'Baseline Switch': 'vars.network_switch = "true"',
-	'Comware Platform': 'vars.network_switch = "true"',
-	'HP 1810': 'vars.network_switch = "true"',
-	'OfficeConnect': 'vars.network_switch = "true"',
-	'ProCurve': 'vars.network_switch = "true"',
-	'PROCURVE': 'vars.network_switch = "true"',
-	'PoEP Switch': 'vars.network_switch = "true"',
-	'SuperStack': 'vars.network_switch = "true"',
-	'DGS-1210': 'vars.network_switch = "true"',
-	'Managed Switch': 'vars.network_switch = "true"',
-	'SMC8024L': 'vars.network_switch = "true"',
-	'Canon iR': 'vars.network_printer = "true"',
-	'Lexmark CS': 'vars.network_printer = "true"',
-	'Lexmark MS': 'vars.network_printer = "true"',
-	'Lexmark MX': 'vars.network_printer = "true"',
-	'Lexmark XM': 'vars.network_printer = "true"',
-	'Printing System': 'vars.network_printer = "true"',
-	'Linux':'vars.os = "Linux"', 
-	'Windows':'vars.os = "Windows"',
-	'APC Web/SNMP': 'vars.ups_apc = "true"', 
+        'RouterOS': 'vars.network_mikrotik = "true"', 
+        'Baseline Switch': 'vars.network_switch = "true"',
+        'Comware Platform': 'vars.network_switch = "true"',
+        'HP 1810': 'vars.network_switch = "true"',
+        'OfficeConnect': 'vars.network_switch = "true"',
+        'ProCurve': 'vars.network_switch = "true"',
+        'PROCURVE': 'vars.network_switch = "true"',
+        'PoEP Switch': 'vars.network_switch = "true"',
+        'SuperStack': 'vars.network_switch = "true"',
+        'DGS-1210': 'vars.network_switch = "true"',
+        'Managed Switch': 'vars.network_switch = "true"',
+        'SMC8024L': 'vars.network_switch = "true"',
+        'Canon iR': 'vars.network_printer = "true"',
+        'Lexmark CS': 'vars.network_printer = "true"',
+        'Lexmark MS': 'vars.network_printer = "true"',
+        'Lexmark MX': 'vars.network_printer = "true"',
+        'Lexmark XM': 'vars.network_printer = "true"',
+        'Printing System': 'vars.network_printer = "true"',
+        'Linux':'vars.os = "Linux"', 
+        'Windows':'vars.os = "Windows"',
+        'APC Web/SNMP': 'vars.ups_apc = "true"', 
     }
     dev_descriptors = {
         'Laserjet': 'vars.network_printer = "true"',
@@ -850,8 +850,8 @@ def compile_hvars(sysdesc, devdesc):
 
     '''Append hostvars based on sysDescr matches'''
     for match, var in sys_descriptors.iteritems():
-	if match in sysdesc:
-	    hostvars += var +'\n  '
+        if match in sysdesc:
+            hostvars += var +'\n  '
     '''Append hostvars based on devDescr matches'''
     for match, var in dev_descriptors.iteritems():
         if match in devdesc:
@@ -870,15 +870,15 @@ def handle_netscan(cidr):
     ret, output, err = exec_command('nmap -sn -sP -T3 {0}'.format(cidr))
     if ret and err:
         sys.stderr.write('There was a problem performing the scan - is the network reachable?')
-	sys.exit(1)
+        sys.exit(1)
     else:
-	print ("Scan took %s seconds" % (time.time() - start))
-	data = parse_nmap_scan(output)
-	if data:
-	    return data
-	else:
-	   sys.stderr.write('Unable to parse nmap scan results! Please report this issue')
-	   sys.exit(1)
+        print ("Scan took %s seconds" % (time.time() - start))
+        data = parse_nmap_scan(output)
+        if data:
+            return data
+        else:
+           sys.stderr.write('Unable to parse nmap scan results! Please report this issue')
+           sys.exit(1)
 
 def parse_nmap_scan(data):
     match = 'Nmap scan report for '
@@ -930,29 +930,29 @@ def snmpget_by_cl(host, credential, oid, timeout=1, retries=0):
       version = versions[h].strip()
       com_ok = 0
       for i in range(0, com_count):
-	cmd = ''
-	community = communities[i].strip()
+        cmd = ''
+        community = communities[i].strip()
         cmd = "snmpget -Oqv -v %s -c %s -r %s -t %s %s %s" % (
             version, community, retries, timeout, host, oid)
-	
-	returncode, output, err = exec_command(cmd)
-	
-	#print returncode, output, err
+        
+        returncode, output, err = exec_command(cmd)
+        
+        #print returncode, output, err
         if returncode and err:
-	    if i < com_count:
-	        continue	
-	    else:
-		data['error'] = str(err)
-	else:
-	    try:
-	        data['output'] = output
-	        data['community'] = community
-	        data['version'] = version
-	        com_ok = 1
-		#Got the data, now get out
-		break	
-	    except Exception, e:
-		print "There was a problem appending data to the dict " + str(e)
+            if i < com_count:
+                continue	
+            else:
+        	data['error'] = str(err)
+        else:
+            try:
+                data['output'] = output
+                data['community'] = community
+                data['version'] = version
+                com_ok = 1
+        	#Got the data, now get out
+        	break	
+            except Exception, e:
+        	print "There was a problem appending data to the dict " + str(e)
       if com_ok == 1:
         break
 
@@ -983,67 +983,67 @@ def snmpwalk_by_cl(host, version, community, oid, timeout=1, retries=0):
     return data
 
 def snmpwalk_tree_valid(host, version, community, oid, timeout=1, retries=0):
-	ret = 0
-	if community == '' or community == 'unknown':
-	    return ret
-
-	match = oid[2:] + '.'
-	data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
-
-	try:
-	    output = data['output'].split('\n')
-	    for line in output:
-	        if match in line:
-	            ret = 1
-	            break
-	except:
-	    output = ''
-
-	return ret
-
-def snmpwalk_get_tree(host, version, community, oid, timeout=1, retries=0):
-	is_valid = 0
-	output = list()
-	if community == '' and  community == 'unknown':
-	    return output
+        ret = 0
+        if community == '' or community == 'unknown':
+            return ret
 
         match = oid[2:] + '.'
-	data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
+        data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
 
-	try:
-	    output = data['output'].split('\n')
-	    for line in output:
-	        if match in line:
-	            is_valid = 1
-	            break
-	except:
-	    output = list()
+        try:
+            output = data['output'].split('\n')
+            for line in output:
+                if match in line:
+                    ret = 1
+                    break
+        except:
+            output = ''
 
-	if not is_valid:
-	    output = list()
+        return ret
 
-	return output
+def snmpwalk_get_tree(host, version, community, oid, timeout=1, retries=0):
+        is_valid = 0
+        output = list()
+        if community == '' and  community == 'unknown':
+            return output
+
+        match = oid[2:] + '.'
+        data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
+
+        try:
+            output = data['output'].split('\n')
+            for line in output:
+                if match in line:
+                    is_valid = 1
+                    break
+        except:
+            output = list()
+
+        if not is_valid:
+            output = list()
+
+        return output
 
 def snmpwalk_get_value(host, version, community, oid, default='', timeout=1, retries=0):
-	ret = default
-	output = list()
-	if community == '' and  community == 'unknown':
-	    return output
+        ret = default
+        output = list()
+        if community == '' and  community == 'unknown':
+            return output
 
         match = oid[2:]
-	data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
+        data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
 
-	try:
-	    output = data['output'].split('\n')
-	    for line in output:
-	        if match in line:
-	            line = line.split('.')[-1]
-	            ret = ': '.join(line.split(': ')[1:]).strip('"')
-	            break
-	except:
-	    output = list()
+        try:
+            output = data['output'].split('\n')
+            for line in output:
+                if match in line:
+                    line = line.split('.')[-1]
+                    ret = ': '.join(line.split(': ')[1:]).strip('"')
+                    break
+        except:
+            output = list()
 
-	return ret
+        return ret
 
 def exec_command(command):
     """Execute command.
