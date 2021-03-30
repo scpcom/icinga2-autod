@@ -89,14 +89,14 @@ for macp in macp_reader:
                 elif len(deps) > 3 and deps[0] == port_hostname and deps[2] == macp_hostname:
                     deps_dupl = 1
             if deps_reve and not deps_skip:
-                print 'WARNING: reverse dependency found for:'
+                print('WARNING: reverse dependency found for:')
             elif port_dupl and not deps_skip:
-                print 'WARNING: duplicate port dependency found for:'
+                print('WARNING: duplicate port dependency found for:')
             elif deps_dupl and not deps_skip:
-                print 'WARNING: duplicate host dependency found for:'
+                print('WARNING: duplicate host dependency found for:')
 
             if not deps_skip:
-                print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
+                print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')')
                 macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
 
             if port_share == 0 and not deps_skip:
@@ -156,11 +156,11 @@ for macp in macp_reader:
             local_port = ''
             if macp[0] == arpa:
                 local_port = 'arp'
-            print macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')'
+            print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')')
             macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
             prev_maca = macp[0]
     elif macp[1] == 'arp' and port_share > 0:
-        print macp[0] + ' ' + macp_ip + ' port ' + macp[1] + ' not found'
+        print(macp[0] + ' ' + macp_ip + ' port ' + macp[1] + ' not found')
 macf_f.close()
 deps_f.close()
 dups_f.close()
