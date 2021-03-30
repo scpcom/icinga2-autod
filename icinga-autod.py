@@ -662,7 +662,7 @@ def compile_hosts(data, location):
             if iffirst < ifcount:
                 ifcount = ifcount - iffirst + 1
             hostvars += 'vars.network_ports = ' + str(ifentries) +'\n  '
-        if hdata['community'] != '' and  hdata['community'] != 'unknown':
+        if have_snmp:
             hostvars += 'vars.snmp_community = "' + hdata['community'] + '"' +'\n  '
             hostvars += 'vars.snmp_version = "' + hdata['snmp_version'] + '"' +'\n  '
             if hdata['snmp_version'] == '2c':
@@ -1004,7 +1004,7 @@ def snmpwalk_tree_valid(host, version, community, oid, timeout=1, retries=0):
 def snmpwalk_get_tree(host, version, community, oid, timeout=1, retries=0):
         is_valid = 0
         output = list()
-        if community == '' and  community == 'unknown':
+        if community == '' or community == 'unknown':
             return output
 
         match = oid[2:] + '.'
@@ -1027,8 +1027,8 @@ def snmpwalk_get_tree(host, version, community, oid, timeout=1, retries=0):
 def snmpwalk_get_value(host, version, community, oid, default='', timeout=1, retries=0):
         ret = default
         output = list()
-        if community == '' and  community == 'unknown':
-            return output
+        if community == '' or community == 'unknown':
+            return ret
 
         match = oid[2:]
         data = snmpwalk_by_cl(host, version, community, oid, timeout, retries)
