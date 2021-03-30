@@ -107,7 +107,7 @@ def main():
     try:
         with open('iana_numbers.json', 'r') as f:
             numbers = json.load(f)
-    except Exception, e:
+    except Exception as e:
         try:
             numbers = ianaparse.IanaParser().parse()
         except:
@@ -166,14 +166,14 @@ def main():
             'community': community, 'snmp_version': snmp_version, 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
         if debug:
-            print host, sysobject, all_hosts[host]
+            print(host, sysobject, all_hosts[host])
 
-    print "\n"
+    print("\n")
     print("Discovery took %s seconds" % (time.time() - start_time))
-    print "Writing data to config file. Please wait"
+    print("Writing data to config file. Please wait")
 
     outfile = compile_hosts(all_hosts, location)
-    print "Wrote data to "+outfile
+    print("Wrote data to "+outfile)
 
 def vendor_match(numbers, sysobject):
     if sysobject:
@@ -192,8 +192,8 @@ def vendor_match(numbers, sysobject):
             vendor_string = numbers[vendor_num]
             return vendor_string
 
-        except Exception, e:
-            sys.stderr.write('Unknown sysObjectID prefix encountered - you can add it to the prefix list in vendor_match(), but please report this on GitHub\n'+str(e))
+        except Exception as e:
+            sys.stderr.write('Unknown sysObjectID prefix encountered - you can add it to the prefix list in vendor_match(), but please report this on GitHub\n{0}'.format(e))
             return False
     else:
         return False
@@ -248,7 +248,7 @@ def is_valid_ipv4_address(address):
 def get_count(hosts):
     count = len(hosts)
     if count == 0:
-        print "No hosts found! Is the network reachable? \nExiting..."
+        print("No hosts found! Is the network reachable? \nExiting...")
         sys.exit(0)
     else:
         return count
@@ -298,7 +298,7 @@ def compile_hosts(data, location):
                 syssnmp = parse_nmap_port_scan(output, '161/udp ')
 
             if syssnmp == 1:
-                print str(ip) + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.'
+                print(str(ip) + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.')
 
         # .3.6.1.2.1.2.2.1.2     ifDescr
         # .3.6.1.2.1.2.2.1.3     ifType
@@ -350,7 +350,7 @@ def compile_hosts(data, location):
                         if '.3.6.1.2.1.2.2.1.3.'+str(ifno)+' ' in type:
                             type = '.'.join(type.split('.')[10:])
                             ifty = int(': '.join(type.split(': ')[1:]).strip('"'))
-                    #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal
+                    #print(str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal)
 
                     ifskip = 0
                     for prefix in port_filter:
@@ -383,7 +383,7 @@ def compile_hosts(data, location):
                     if ifskip == 0 and ifno > ifcount:
                         ifcount = ifno
                         ifentries = ifentries + 1
-                        #print str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal
+                        #print(str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal)
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
                     if ifna.startswith('Port  '):
@@ -410,13 +410,13 @@ def compile_hosts(data, location):
                 chassisid = ':'.join(chassisid.split(' ')[:-1])
 
         if hdata['hostmac'] != '':
-            #print str(ip) + ' ' + hdata['hostname'] + ' got Host MAC'
+            #print(str(ip) + ' ' + hdata['hostname'] + ' got Host MAC')
             macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
         portcount = 0
 
         if len(phys_output) > 0:
-            print str(ip) + ' ' + hdata['hostname'] + ' got Port IDs'
+            print(str(ip) + ' ' + hdata['hostname'] + ' got Port IDs')
             if chassisid != '':
                 macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
             for line in phys_output:
@@ -485,7 +485,7 @@ def compile_hosts(data, location):
                         if len(iftmp) > 2:
                             elskip = 0
                         if elskip:
-                            print ifna
+                            #print(ifna)
                             ifskip = 1
 
                     if fix_portno:
@@ -515,7 +515,7 @@ def compile_hosts(data, location):
         output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
 
         if len(output) > 0:
-            print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
+            print(str(ip) + ' ' + hdata['hostname'] + ' got MAC Table')
             for line in output:
                 if '.3.6.1.2.1.17.7.1.2.2.1.2.' in line:
                     ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
@@ -540,7 +540,7 @@ def compile_hosts(data, location):
             output = list()
 
         if len(output) > 0:
-            print str(ip) + ' ' + hdata['hostname'] + ' got MAC Table'
+            print(str(ip) + ' ' + hdata['hostname'] + ' got MAC Table')
             for line in output:
                 if '.3.6.1.2.1.17.4.3.1.2.' in line:
                     ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
@@ -563,7 +563,7 @@ def compile_hosts(data, location):
 
         if len(output) > 0:
             if '.0.8802.1.1.2.1.4.1.1.5.' in output[0]:
-                print str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table'
+                print(str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table')
             for line in output:
                 if '.0.8802.1.1.2.1.4.1.1.5.' in line:
                     ifno = int(line.split('.')[12:][0])
@@ -581,7 +581,7 @@ def compile_hosts(data, location):
                         maca = maca[:-1]
                     if len(maca) == 12 and not ':' in maca:
                         maca = maca[:2] + ':' + maca[2:4] + ':' + maca[4:6] + ':' + maca[6:8] + ':' + maca[8:10] + ':' + maca[10:12]
-                    #print ifno+';'+ifnr+';'+maca
+                    #print(ifno+';'+ifnr+';'+maca)
                     have_lldt = 1
                     lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] +'\n')
 
@@ -637,7 +637,7 @@ def compile_hosts(data, location):
                     if ':\\\\ Label:' in stna:
                         stna = stna.split(' Label:')[0]
                         stna = '\\\\'.join(stna.split('\\'))
-                    #print str(stno)+';'+str(stty)+';'+stna
+                    #print(str(stno)+';'+str(stty)+';'+stna)
                     if stty == 2:
                         snmp_storage_mem_name=stna
                     elif stty == 3:
@@ -645,7 +645,7 @@ def compile_hosts(data, location):
                     elif stty == 4 and snmp_storage_disk_name == '' or stna == '/':
                         snmp_storage_disk_name=stna
 
-        #print str(ifcount) + ' interfaces'
+        #print(str(ifcount) + ' interfaces')
         if is_comware == "true":
             hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
         if is_hp1810v2 == "true":
@@ -865,14 +865,14 @@ def handle_netscan(cidr):
     '''
     start = time.time()
 
-    print "Starting scan for "+cidr
+    print("Starting scan for "+cidr)
 
     ret, output, err = exec_command('nmap -sn -sP -T3 {0}'.format(cidr))
     if ret and err:
         sys.stderr.write('There was a problem performing the scan - is the network reachable?')
         sys.exit(1)
     else:
-        print ("Scan took %s seconds" % (time.time() - start))
+        print("Scan took %s seconds" % (time.time() - start))
         data = parse_nmap_scan(output)
         if data:
             return data
@@ -937,7 +937,7 @@ def snmpget_by_cl(host, credential, oid, timeout=1, retries=0):
 
         returncode, output, err = exec_command(cmd)
 
-        #print returncode, output, err
+        #print(returncode, output, err)
         if returncode and err:
             if i < com_count:
                 continue
@@ -951,8 +951,8 @@ def snmpget_by_cl(host, credential, oid, timeout=1, retries=0):
                 com_ok = 1
                 #Got the data, now get out
                 break
-            except Exception, e:
-                print "There was a problem appending data to the dict " + str(e)
+            except Exception as e:
+                print("There was a problem appending data to the dict {0}".format(e))
       if com_ok == 1:
         break
 
@@ -970,15 +970,15 @@ def snmpwalk_by_cl(host, version, community, oid, timeout=1, retries=0):
 
     returncode, output, err = exec_command(cmd)
 
-    #print returncode, output, err
+    #print(returncode, output, err)
     if returncode and err:
         data['error'] = str(err)
     else:
         try:
             data['output'] = output
             data['community'] = community
-        except Exception, e:
-            print "There was a problem appending data to the dict " + str(e)
+        except Exception as e:
+            print("There was a problem appending data to the dict {0}".format(e))
 
     return data
 
