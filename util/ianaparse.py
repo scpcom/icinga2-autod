@@ -15,7 +15,10 @@ import sys
 import os
 import re
 import json
-import urllib2
+try:
+    import urllib2
+except ImportError:
+    import urllib.request
 import tempfile
 
 class IanaParser(object):
@@ -224,7 +227,10 @@ class IanaParser(object):
     # --------------------------------------------------------------------------------
     
         tmp = tempfile.NamedTemporaryFile(prefix = 'iana_en_', suffix = '.tmp', delete = False)
-        urldata = urllib2.urlopen(url)
+        try:
+            urldata = urllib2.urlopen(url)
+        except NameError:
+            urldata = urllib.request.urlopen(url)
         while True:
             line = urldata.readline()
             if not line: break
