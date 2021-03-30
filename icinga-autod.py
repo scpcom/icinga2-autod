@@ -207,7 +207,11 @@ def check_args(args):
     '''
     check_flags = {}
     '''Iterate through specified args and make sure input is valid. TODO: add more flags'''
-    for k,v in vars(args).iteritems():
+    try:
+        args_items = vars(args).iteritems()
+    except AttributeError:
+        args_items = vars(args).items()
+    for k,v in args_items:
         if k == 'network':
             network = v.split('/')[0]
             if len(network) > 7:
@@ -224,7 +228,11 @@ def check_args(args):
         if idx == last_idx:
             last_key = key
 
-    for flag, val in check_flags.iteritems():
+    try:
+        check_flags_items = check_flags.iteritems()
+    except AttributeError:
+        check_flags_items = check_flags.items()
+    for flag, val in check_flags_items:
         if val is False:
             sys.stderr.write("Check "+flag+" failed to validate your input.\n")
             if flag == last_key:
@@ -269,7 +277,11 @@ def compile_hosts(data, location):
     mact_f = open(mact_filename, 'w')
     lldt_f = open(lldt_filename, 'w')
 
-    for ip, hdata in data.iteritems():
+    try:
+        data_items = data.iteritems()
+    except AttributeError:
+        data_items = data.items()
+    for ip, hdata in data_items:
         have_snmp = 0
         if hdata['community'] != '' and  hdata['community'] != 'unknown':
             have_snmp = 1
@@ -849,11 +861,19 @@ def compile_hvars(sysdesc, devdesc):
         hostvars += 'vars.device_description = "' + devdesc + '"'+'\n  '
 
     '''Append hostvars based on sysDescr matches'''
-    for match, var in sys_descriptors.iteritems():
+    try:
+        sys_descriptors_items = sys_descriptors.iteritems()
+    except AttributeError:
+        sys_descriptors_items = sys_descriptors.items()
+    for match, var in sys_descriptors_items:
         if match in sysdesc:
             hostvars += var +'\n  '
     '''Append hostvars based on devDescr matches'''
-    for match, var in dev_descriptors.iteritems():
+    try:
+        dev_descriptors_items = dev_descriptors.iteritems()
+    except AttributeError:
+        dev_descriptors_items = dev_descriptors.items()
+    for match, var in dev_descriptors_items:
         if match in devdesc:
             hostvars += var +'\n  '
 
