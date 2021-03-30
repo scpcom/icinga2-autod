@@ -55,29 +55,29 @@ def _find(package):
         return [package, True]
     else:
 
-	#Get distro name
+        #Get distro name
         distro = platform.dist()[0].lower()
 
         #Debian or RedHat based?
         if distro in ['centos', 'redhat']:
             if package == 'snmp':
                 command = 'rpm -qa | grep -e ^net-snmp-[0-9].*$'
-	    elif package == 'net-snmp-utils':
-		command = 'rpm -qa | grep -e ^net-snmp-utils-.*$'
+            elif package == 'net-snmp-utils':
+        	command = 'rpm -qa | grep -e ^net-snmp-utils-.*$'
             else:
                 command = 'rpm -qa | grep -e '+package
 
             ret, out, err = exec_command(command)
 
         elif distro in ['ubuntu', 'debian']:
-	    if 'net-snmp' not in package:
+            if 'net-snmp' not in package:
                 ret, out, err = exec_command("dpkg --list | awk '{print $2}' | grep -e ^"+package+"$")
-	    else:
-		return [package, True]
+            else:
+        	return [package, True]
 
-	else:
-	    sys.stderr.write('Unsupported distribution! You will have to resolve missing requirements yourself.')
-	    sys.exit(1)
+        else:
+            sys.stderr.write('Unsupported distribution! You will have to resolve missing requirements yourself.')
+            sys.exit(1)
 
         if len(out) > 0:
             return [package, True]
