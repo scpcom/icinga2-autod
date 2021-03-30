@@ -32,15 +32,15 @@ class IanaParser(object):
     
         temp_file = self.get_from_url(input_url)
         if debug:
-            print "IF=<%s>, TMP=<%s>, OUT=<%s>" % (input_url, temp_file, output_file)
+            print("IF=<%s>, TMP=<%s>, OUT=<%s>" % (input_url, temp_file, output_file))
     
         # conversion
         entries = self.iana_to_json(temp_file, output_file)
-        #print "found %s entries" % entries
+        #print("found %s entries" % entries)
         if debug:
-            print "deleting tmp file %s" % temp_file
+            print("deleting tmp file %s" % temp_file)
         os.unlink(temp_file)
-        #print "End"
+        #print("End")
 	return entries
     
     
@@ -52,7 +52,7 @@ class IanaParser(object):
         try:
             fp = open(temp_file, 'r')
         except (IOError, OSError) as e:
-            print "ERROR : cannot open input file, exit : %s" % e
+            print("ERROR : cannot open input file, exit : %s" % e)
             sys.exit(1)
     
         # header parsing
@@ -69,21 +69,21 @@ class IanaParser(object):
             # check for the usual IANA header in 1st line
             if re.search(r'PRIVATE ENTERPRISE NUMBERS', line):
                 if debug:
-                    print "found header"
+                    print("found header")
     
             # last updated stamp
             regex = re.compile(r'\(last updated (\d{4}-\d{2}-\d{2})\)')
             match = regex.search(line)
             if match:
                 last_update = match.group(1)
-                #print "updated = %s" % last_update
+                #print("updated = %s" % last_update)
     
             # stop right before the data records
             if line == '| | | |':
                 break
     
         if debug:
-            print "header done"
+            print("header done")
     
         # and now the data
         # -------------------------------------
@@ -132,7 +132,7 @@ class IanaParser(object):
                     enterprises[decimal] = {'o': organization, 'c': contact, 'e': email}
     
                 if debug:
-                    print "found footer, exit read loop"
+                    print("found footer, exit read loop")
                 break
     
         fp.close
@@ -148,7 +148,7 @@ class IanaParser(object):
     # --------------------------------------------------------------------------------
     
         if debug:
-            print "analyzing block %s" % block
+            print("analyzing block %s" % block)
     
         decimal = 0
         organization = ''
@@ -159,20 +159,20 @@ class IanaParser(object):
         if re.search(r'^\d+$', block[0]):
             decimal = block[0]
         else:
-            print "ERROR: first element of block is not a valid decimal"
+            print("ERROR: first element of block is not a valid decimal")
             return False, -1, 'na', 'na', 'na'
     
         # now loop over the other elements
         last_element_found = ''
         for element in block[1:]:
             if debug:
-                print "working on element <%s>" % element
+                print("working on element <%s>" % element)
     
             # get line addition
             # any non-blank text starting at beginning of line, but not a number
             if re.search(r'^[^\d\s]', element):
                 if debug:
-                    print "line continuation"
+                    print("line continuation")
                 if last_element_found == 'organization':
                     organization = organization + ' ' + element
                 elif last_element_found == 'contact':
@@ -180,7 +180,7 @@ class IanaParser(object):
                 elif last_element_found == 'email':
                     email = email + ' ' + element
                 else:
-                    print "ERROR: don't know how to add this line to unknown block element"
+                    print("ERROR: don't know how to add this line to unknown block element")
                     return False, -1, 'na', 'na', 'na'
                 continue
     
@@ -204,7 +204,7 @@ class IanaParser(object):
     
             # something after email, shall not happen
             if last_element_found == 'email':
-                print "ERROR: nothing should come after the email element"
+                print("ERROR: nothing should come after the email element")
                 continue
     
         return True, decimal, self.clean(organization), self.clean(contact), self.clean(email)
