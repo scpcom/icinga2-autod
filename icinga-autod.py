@@ -1074,6 +1074,8 @@ def exec_command(command):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
     output, err_msg = sub_p.communicate()
+    if output:
+        output = output.decode('utf8')
     return (sub_p.returncode, output, err_msg)
 
 
