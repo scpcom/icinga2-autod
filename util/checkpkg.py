@@ -63,7 +63,7 @@ def _find(package):
             if package == 'snmp':
                 command = 'rpm -qa | grep -e ^net-snmp-[0-9].*$'
             elif package == 'net-snmp-utils':
-        	command = 'rpm -qa | grep -e ^net-snmp-utils-.*$'
+                command = 'rpm -qa | grep -e ^net-snmp-utils-.*$'
             else:
                 command = 'rpm -qa | grep -e '+package
 
@@ -73,7 +73,7 @@ def _find(package):
             if 'net-snmp' not in package:
                 ret, out, err = exec_command("dpkg --list | awk '{print $2}' | grep -e ^"+package+"$")
             else:
-        	return [package, True]
+                return [package, True]
 
         else:
             sys.stderr.write('Unsupported distribution! You will have to resolve missing requirements yourself.')
