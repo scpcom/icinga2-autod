@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import util.checkpkg as checkpkg
 
 checkpkg.check(['nmap', 'snmp', 'net-snmp-utils'])
