@@ -3,6 +3,7 @@ import util.checkpkg as checkpkg
 
 checkpkg.check(['nmap', 'snmp', 'net-snmp-utils'])
 
+import os
 import sys
 import subprocess
 import json
@@ -15,6 +16,17 @@ except ImportError:
 import time
 import socket
 import util.ianaparse as ianaparse
+
+try:
+    import OuiLookup
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'ouilookup'))
+    try:
+        import OuiLookup
+    except ImportError:
+        print('WARNING: OuiLookup not available.')
+    except SyntaxError:
+        print('WARNING: OuiLookup not compatible with this python version.')
 
 """
 This discovery script will scan a subnet for alive hosts, 
@@ -162,6 +174,9 @@ def main():
         else:
             vendor = None
 
+        if not vendor:
+            vendor = get_mac_vendor(hostmac)
+
         all_hosts[host] = {
             'community': community, 'snmp_version': snmp_version, 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
@@ -260,6 +275,23 @@ def get_count(hosts):
         sys.exit(0)
     else:
         return count
+
+def get_mac_vendor(mac):
+    mac_vendor = None
+    if mac == '':
+        return mac_vendor
+    try:
+        ouilookup = OuiLookup.OuiLookup(logger_level=OuiLookup.LOGGER_LEVEL_DEFAULT)
+        response = ouilookup.query(expression=mac)
+    except NameError:
+        return mac_vendor
+    for item in response:
+        for value in item.values():
+            mac_vendor = value
+            break
+        if mac_vendor:
+            break
+    return mac_vendor
 
 def compile_hosts(data, location):
     if location: 

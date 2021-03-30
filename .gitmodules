@@ -1,0 +1,3 @@
+[submodule "ouilookup"]
+	path = ouilookup
+	url = https://github.com/verbnetworks/ouilookup
