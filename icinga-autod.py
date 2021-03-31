@@ -362,7 +362,15 @@ def compile_hosts(data, location):
         is_dgs3100s3 = "false"
         port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr']
         alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
-        type_filter = [1, 23, 24, 53, 131, 161]
+        # IANAifType-MIB
+        #   1 other
+        #  23 ppp
+        #  24 softwareLoopback
+        #  53 propVirtual
+        # 131 tunnel
+        # 161 ieee8023adLag
+        # 188 radioMAC
+        type_filter = [1, 23, 24, 53, 131, 161, 188]
 
         desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
         type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
