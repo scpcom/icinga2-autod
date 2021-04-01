@@ -299,6 +299,8 @@ def compile_hosts(data, location):
         '49300/description.xml',
         '49152/IGDdevicedesc_brlan0.xml',
         '5000/rootDesc.xml',
+        '52869/picsdesc.xml',
+        '52881/simplecfg.xml',
     ]
 
     set_upnp_ns(0)
@@ -331,10 +333,17 @@ def compile_hosts(data, location):
         tr64_device = None
         for tr64_desc_location in tr64_desc_locations:
             tr64_location = 'http://'+str(ip)+':'+tr64_desc_location
+            set_upnp_ns(0)
             try:
                 tr64_device = upnp_process_description(tr64_location)
             except:
                 tr64_device = None
+            if tr64_device is None:
+                set_upnp_ns(1)
+                try:
+                    tr64_device = upnp_process_description(tr64_location)
+                except:
+                    tr64_device = None
             if tr64_device is not None:
                 break
 
@@ -344,11 +353,13 @@ def compile_hosts(data, location):
         devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
 
         if tr64_device is not None:
-            if sysvendor == '' or not sysvendor:
+            if tr64_device.manufacturer and (sysvendor == '' or not sysvendor):
                 sysvendor = tr64_device.manufacturer
-            if sysdesc == '':
+            if tr64_device.model_description and sysdesc == '':
                 sysdesc = tr64_device.model_description
-            if devdesc == '':
+            elif tr64_device.model_number and sysdesc == '':
+                sysdesc = tr64_device.model_number
+            if tr64_device.model_name and devdesc == '':
                 devdesc = tr64_device.model_name
 
         if hostmac != '' and not sysvendor:
