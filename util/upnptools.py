@@ -709,7 +709,8 @@ def upnp_print_schema(root, indent=''):
         upnp_print_schema(d, indent)
 
 def upnp_process_description(location):
-    print('Getting description...')
+    if UPNP_DEBUG:
+        print('Getting description...')
     desc = http_get(location)
     desc_xml = ElementTree.XML(desc[2])
     # NOTE: Some device descriptors don't contain URL base.
