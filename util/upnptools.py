@@ -730,18 +730,3 @@ def discovery_channel(bind_addr):
         upnp_print_schema(device)
         #s = device.find_services('WANIPConnection:1')
         #r = s[0].invoke('GetExternalIPAddress')
-
-if len(sys.argv) > 1:
-    device = upnp_process_description(sys.argv[1])
-    upnp_print_schema(device)
-else:
-    default_bind_addr = ('192.168.1.55', 2600)
-    discovery_channel(default_bind_addr)
-
-#print ssdp_search_uni(sys.argv[1], 'upnp:rootdevice')
-
-#desc_xml = ElementTree.parse('gateway.xml')
-#r = UpnpRootDevice.from_xml(desc_xml)
-#print r
-#print r.services
-#print r.subdevices
