@@ -38,7 +38,7 @@ ElementTree.register_namespace('control', UPNP_CONTROL_NS)
 # HTTP related code
 #
 
-HTTP_DEBUG = True
+HTTP_DEBUG = False
 
 class HttpTransport(object):
     "Implements a base class for HTTP transport protocols"
@@ -431,7 +431,8 @@ def ssdp_search_multi(bind_addr, search_type, timeout=5):
 # UPnP client code
 #
 
-UPNP_DEBUG = True
+UPNP_ACTIONS = False
+UPNP_DEBUG = False
 
 class UpnpError(Exception):
     pass
@@ -519,7 +520,7 @@ class UpnpService(object):
         self.event_sub_url = None
 
     def __str__(self):
-        return 'Service %s (type %s)' % (self.id, self.type)
+        return 'Service %s (type %s) %s' % (self.id, self.type, self.control_url)
     __repr__ = __str__
 
     @staticmethod
@@ -698,9 +699,10 @@ def upnp_print_schema(root, indent=''):
     indent += '  '
     for s in root.services:
         print('%s%s' % (indent, s))
-        sd = s.get_descriptor()
-        for an, a in sd.actions.iteritems():
-            print('%s->%s' % (indent, a))
+        if UPNP_ACTIONS:
+            sd = s.get_descriptor()
+            for an, a in sd.actions.iteritems():
+                print('%s->%s' % (indent, a))
     for d in root.subdevices:
         upnp_print_schema(d, indent)
 
