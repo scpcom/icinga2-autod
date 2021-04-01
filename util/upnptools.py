@@ -729,8 +729,11 @@ def discovery_channel(bind_addr):
     devices = {}
     for ssdp_result in ssdp_results:
         print(ssdp_result)
-        device = upnp_process_description(ssdp_result.location)
-        upnp_print_schema(device)
+        try:
+            device = upnp_process_description(ssdp_result.location)
+            upnp_print_schema(device)
+        except:
+            print('could not get device description')
         #s = device.find_services('WANIPConnection:1')
         #r = s[0].invoke('GetExternalIPAddress')
 
