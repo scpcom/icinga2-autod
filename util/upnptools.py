@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import socket
 import struct
@@ -728,8 +729,12 @@ def discovery_channel(bind_addr):
         #s = device.find_services('WANIPConnection:1')
         #r = s[0].invoke('GetExternalIPAddress')
 
-default_bind_addr = ('192.168.1.55', 2600)
-discovery_channel(default_bind_addr)
+if len(sys.argv) > 1:
+    device = upnp_process_description(sys.argv[1])
+    upnp_print_schema(device)
+else:
+    default_bind_addr = ('192.168.1.55', 2600)
+    discovery_channel(default_bind_addr)
 
 #print ssdp_search_uni(sys.argv[1], 'upnp:rootdevice')
 
