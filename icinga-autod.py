@@ -16,6 +16,7 @@ except ImportError:
 import time
 import socket
 import util.ianaparse as ianaparse
+from util.upnptools import upnp_process_description, upnp_print_schema, set_upnp_ns
 
 try:
     import OuiLookup
@@ -174,9 +175,6 @@ def main():
         else:
             vendor = None
 
-        if not vendor:
-            vendor = get_mac_vendor(hostmac)
-
         all_hosts[host] = {
             'community': community, 'snmp_version': snmp_version, 'hostname': hostname, 'hostmac': hostmac, 'sysdesc': sysdesc, 'syslocation': syslocation, 'vendor' : vendor }
 
@@ -294,6 +292,17 @@ def get_mac_vendor(mac):
     return mac_vendor
 
 def compile_hosts(data, location):
+    tr64_desc_locations = [
+        '49000/tr64desc.xml',
+        '49000/fboxdesc.xml',
+        '37215/tr064dev.xml',
+        '49300/description.xml',
+        '49152/IGDdevicedesc_brlan0.xml',
+        '5000/rootDesc.xml',
+    ]
+
+    set_upnp_ns(0)
+
     if location: 
         loc = location.lower()
         filename = 'hosts_'+loc+'.conf'
@@ -318,9 +327,34 @@ def compile_hosts(data, location):
         if hdata['community'] != '' and  hdata['community'] != 'unknown':
             have_snmp = 1
 
+        tr64_location = ''
+        tr64_device = None
+        for tr64_desc_location in tr64_desc_locations:
+            tr64_location = 'http://'+str(ip)+':'+tr64_desc_location
+            try:
+                tr64_device = upnp_process_description(tr64_location)
+            except:
+                tr64_device = None
+            if tr64_device is not None:
+                break
+
+        hostmac = hdata['hostmac']
+        sysvendor = hdata['vendor']
+        sysdesc = hdata['sysdesc']
         devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
 
-        hostvars = compile_hvars(hdata['sysdesc'], devdesc)
+        if tr64_device is not None:
+            if sysvendor == '' or not sysvendor:
+                sysvendor = tr64_device.manufacturer
+            if sysdesc == '':
+                sysdesc = tr64_device.model_description
+            if devdesc == '':
+                devdesc = tr64_device.model_name
+
+        if hostmac != '' and not sysvendor:
+            sysvendor = get_mac_vendor(hostmac)
+
+        hostvars = compile_hvars(sysdesc, devdesc)
         hostlocation = location
         if hdata['syslocation'] != '':
             hostlocation = hdata['syslocation']
@@ -745,9 +779,13 @@ def compile_hosts(data, location):
              if snmp_storage_disk_name.startswith('/'):
                  snmp_storage_disk_name = '^'+snmp_storage_disk_name+'$$'
              hostvars += 'vars.snmp_storage_disk_name = "' + snmp_storage_disk_name + '"' +'\n  '
+        if tr64_device is not None:
+              tr64_location = tr64_location.split(':')[-1].split('/')
+              hostvars += 'vars.tr64_port = ' + tr64_location[0] +'\n  '
+              hostvars += 'vars.tr64_desc_location = "' + tr64_location[1] + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
-        host_entry = build_host_entry(hostname, str(ip), hostlocation, hdata['vendor'], str(hostvars))
+        host_entry = build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
 
         f.write(host_entry)
 
