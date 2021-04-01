@@ -331,7 +331,20 @@ def compile_hosts(data, location):
 
         tr64_location = ''
         tr64_device = None
+        prev_tr64_port = '0'
+        systr64 = 0
         for tr64_desc_location in tr64_desc_locations:
+            tr64_port = tr64_desc_location.split('/')[0]
+            if prev_tr64_port != tr64_port:
+                prev_tr64_port = tr64_port
+                systr64 = 0
+                ret, output, err = exec_command('nmap -p{0} {1}'.format(tr64_port, ip))
+                if ret and err:
+                    systr64 = 0
+                else:
+                    systr64 = parse_nmap_port_scan(output, '{0}/tcp '.format(tr64_port))
+            if not systr64:
+                continue
             tr64_location = 'http://'+str(ip)+':'+tr64_desc_location
             set_upnp_ns(0)
             try:
