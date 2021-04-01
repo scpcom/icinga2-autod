@@ -183,9 +183,11 @@ def main():
 
     print("\n")
     print("Discovery took %s seconds" % (time.time() - start_time))
+    compile_start = time.time()
     print("Writing data to config file. Please wait")
 
     outfile = compile_hosts(all_hosts, location)
+    print("Compile took %s seconds" % (time.time() - compile_start))
     print("Wrote data to "+outfile)
 
 def vendor_match(numbers, sysobject):
