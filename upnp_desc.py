@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import sys
-from util.upnptools import upnp_process_description, upnp_print_schema
+from util.upnptools import upnp_process_description, upnp_print_schema, set_upnp_ns
 
 if len(sys.argv) > 1:
+    set_upnp_ns(0)
     try:
         device = upnp_process_description(sys.argv[1])
     except Exception as e:

@@ -13,6 +13,7 @@ UPNP_ORG_NS_MAP = {
     'service': UPNP_ORG_SERVICE_NS,
     'control': UPNP_ORG_CONTROL_NS,
 }
+
 TR64_DEVICE_NS = 'urn:dslforum-org:device-1-0'
 TR64_SERVICE_NS = 'urn:dslforum-org:service-1-0'
 TR64_CONTROL_NS = 'urn:dslforum-org:control-1-0'
@@ -22,17 +23,6 @@ TR64_NS_MAP = {
     'service': TR64_SERVICE_NS,
     'control': TR64_CONTROL_NS,
 }
-
-UPNP_NS_MAP = TR64_NS_MAP
-
-UPNP_DEVICE_NS = UPNP_NS_MAP['device']
-UPNP_SERVICE_NS = UPNP_NS_MAP['service']
-UPNP_CONTROL_NS = UPNP_NS_MAP['control']
-# Used by writer
-ElementTree.register_namespace('soap', 'http://schemas.xmlsoap.org/soap/envelope/')
-ElementTree.register_namespace('device', UPNP_DEVICE_NS)
-ElementTree.register_namespace('service', UPNP_SERVICE_NS)
-ElementTree.register_namespace('control', UPNP_CONTROL_NS)
 
 #
 # HTTP related code
@@ -730,3 +720,23 @@ def discovery_channel(bind_addr):
         upnp_print_schema(device)
         #s = device.find_services('WANIPConnection:1')
         #r = s[0].invoke('GetExternalIPAddress')
+
+def set_upnp_ns(on):
+    global UPNP_NS_MAP
+    global UPNP_DEVICE_NS
+    global UPNP_SERVICE_NS
+    global UPNP_CONTROL_NS
+    if on:
+        UPNP_NS_MAP = UPNP_ORG_NS_MAP
+    else:
+        UPNP_NS_MAP = TR64_NS_MAP
+    UPNP_DEVICE_NS = UPNP_NS_MAP['device']
+    UPNP_SERVICE_NS = UPNP_NS_MAP['service']
+    UPNP_CONTROL_NS = UPNP_NS_MAP['control']
+    # Used by writer
+    ElementTree.register_namespace('soap', 'http://schemas.xmlsoap.org/soap/envelope/')
+    ElementTree.register_namespace('device', UPNP_DEVICE_NS)
+    ElementTree.register_namespace('service', UPNP_SERVICE_NS)
+    ElementTree.register_namespace('control', UPNP_CONTROL_NS)
+
+set_upnp_ns(1)
