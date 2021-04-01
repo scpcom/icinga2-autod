@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import socket
 import struct
@@ -61,7 +61,7 @@ class HttpTcpTransport(HttpTransport):
             print('Connecting to %s:%d.' % remote_addr)
         self.s.connect(remote_addr)
     def send(self, data):
-        self.s.send(data)
+        self.s.send(data.encode())
     def recv(self):
         return (self.s.recv(65536), self.remote_addr)
 
@@ -72,7 +72,7 @@ class HttpUdpTransport(HttpTransport):
         HttpTransport.__init__(self, socket.SOCK_DGRAM, socket.IPPROTO_UDP, timeout)
         self.remote_addr = remote_addr
     def send(self, data):
-        self.s.sendto(data, self.remote_addr)
+        self.s.sendto(data.encode(), self.remote_addr)
 
 class HttpUdpUnicastTransport(HttpUdpTransport):
     "Implements HTTP over unicast UDP"
@@ -144,7 +144,11 @@ class HttpClient(object):
         request_lines = [ '%s %s HTTP/%s' % (method, url, self.http_version) ]
         has_host = False
         if headers:
-            for header, value in headers.iteritems():
+            try:
+                headers_items = headers.iteritems()
+            except AttributeError:
+                headers_items = headers.items()
+            for header, value in headers_items:
                 header = header.upper()
                 has_host = has_host or header == 'HOST'
                 request_lines.append('%s: %s' % (header, str(value)))
@@ -185,7 +189,7 @@ class HttpClient(object):
         end_of_headers = -1
         while end_of_headers < 0:
             frag, addr = self._tr.recv()
-            response += frag
+            response += frag.decode('utf8')
             end_of_headers = response.find("\r\n\r\n")
             if end_of_headers < 0:
                 end_of_headers = response.find("\n\n")
@@ -200,7 +204,7 @@ class HttpClient(object):
             content_length = int(headers['CONTENT-LENGTH']) - len(body)
             while content_length > 0:
                 frag, addr = self._tr.recv()
-                body += frag
+                body += frag.decode('utf8')
                 content_length -= len(frag)
         elif 'TRANSFER-ENCODING' in headers and headers['TRANSFER-ENCODING'].lower() == 'chunked':
             buffer = body
@@ -211,7 +215,7 @@ class HttpClient(object):
                 buffer_offset = 0
                 while buffer.find("\n") == -1:
                     frag, addr = self._tr.recv()
-                    buffer += frag
+                    buffer += frag.decode('utf8')
                 buffer_offset = buffer.find("\n")
                 if buffer_offset == 0:
                     buffer = buffer[1:]
@@ -234,7 +238,7 @@ class HttpClient(object):
                     print("Buffer length: %d" % len(buffer))
                 while len(buffer) - buffer_offset < chunk_len:
                     frag, addr = self._tr.recv()
-                    buffer += frag
+                    buffer += frag.decode('utf8')
                 body += buffer[buffer_offset:buffer_offset + chunk_len]
                 buffer = buffer[buffer_offset + chunk_len:]
         else:
@@ -246,7 +250,7 @@ class HttpClient(object):
         "Internal routine. Performs header parsing."
 
         lines = xlines(text)
-        status = lines.next()
+        status = next(lines)
         headers = {}
         for line in lines:
             if len(line) == 0:
@@ -546,7 +550,11 @@ class UpnpService(object):
         sd = self.get_descriptor()
         
         # Don't bother with XML tools...
-        args = ['<%s>%s</%s>' % (name, value, name) for name, value in kwargs.iteritems()]
+        try:
+            kwargs_items = kwargs.iteritems()
+        except AttributeError:
+            kwargs_items = kwargs.items()
+        args = ['<%s>%s</%s>' % (name, value, name) for name, value in kwargs_items]
         body_text = '<u:%s xmlns:u="%s">%s</u:%s>' % (action, self.type_urn, ''.join(args), action)
         xml = '<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>'+body_text+'</s:Body></s:Envelope>'
         
@@ -691,7 +699,11 @@ def upnp_print_schema(root, indent=''):
         print('%s%s' % (indent, s))
         if UPNP_ACTIONS:
             sd = s.get_descriptor()
-            for an, a in sd.actions.iteritems():
+            try:
+                sd_actions_items = sd.actions.iteritems()
+            except AttributeError:
+                sd_actions_items = sd.actions.items()
+            for an, a in sd_actions_items:
                 print('%s->%s' % (indent, a))
     for d in root.subdevices:
         upnp_print_schema(d, indent)

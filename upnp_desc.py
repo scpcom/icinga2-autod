@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 from util.upnptools import upnp_process_description, upnp_print_schema, set_upnp_ns
 
@@ -11,6 +11,6 @@ if len(sys.argv) > 1:
         device = None
     if device is not None:
         upnp_print_schema(device)
-        print 'Vendor: '+device.manufacturer
-        print 'Model: '+device.model_name
-        print 'Description: '+device.model_description
+        print('Vendor: '+device.manufacturer)
+        print('Model: '+device.model_name)
+        print('Description: '+device.model_description)
