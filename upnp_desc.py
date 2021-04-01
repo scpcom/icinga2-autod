@@ -14,8 +14,10 @@ if len(sys.argv) > 1:
         device = upnp_process_description(sys.argv[1])
     if device is not None:
         upnp_print_schema(device)
-        print('Vendor: '+device.manufacturer)
-        print('Model: '+device.model_name)
+        if device.manufacturer:
+            print('Vendor: '+device.manufacturer)
+        if device.model_name:
+            print('Model: '+device.model_name)
         if device.model_description:
             print('Description: '+device.model_description)
         if device.model_number:
