@@ -3,15 +3,30 @@ import socket
 import struct
 import xml.etree.ElementTree as ElementTree
 
-UPNP_DEVICE_NS = 'urn:schemas-upnp-org:device-1-0'
-UPNP_SERVICE_NS = 'urn:schemas-upnp-org:service-1-0'
-UPNP_CONTROL_NS = 'urn:schemas-upnp-org:control-1-0'
+UPNP_ORG_DEVICE_NS = 'urn:schemas-upnp-org:device-1-0'
+UPNP_ORG_SERVICE_NS = 'urn:schemas-upnp-org:service-1-0'
+UPNP_ORG_CONTROL_NS = 'urn:schemas-upnp-org:control-1-0'
 # Used by Element.find()
-UPNP_NS_MAP = {
-    'device': UPNP_DEVICE_NS,
-    'service': UPNP_SERVICE_NS,
-    'control': UPNP_CONTROL_NS,
+UPNP_ORG_NS_MAP = {
+    'device': UPNP_ORG_DEVICE_NS,
+    'service': UPNP_ORG_SERVICE_NS,
+    'control': UPNP_ORG_CONTROL_NS,
 }
+TR64_DEVICE_NS = 'urn:dslforum-org:device-1-0'
+TR64_SERVICE_NS = 'urn:dslforum-org:service-1-0'
+TR64_CONTROL_NS = 'urn:dslforum-org:control-1-0'
+# Used by Element.find()
+TR64_NS_MAP = {
+    'device': TR64_DEVICE_NS,
+    'service': TR64_SERVICE_NS,
+    'control': TR64_CONTROL_NS,
+}
+
+UPNP_NS_MAP = TR64_NS_MAP
+
+UPNP_DEVICE_NS = UPNP_NS_MAP['device']
+UPNP_SERVICE_NS = UPNP_NS_MAP['service']
+UPNP_CONTROL_NS = UPNP_NS_MAP['control']
 # Used by writer
 ElementTree.register_namespace('soap', 'http://schemas.xmlsoap.org/soap/envelope/')
 ElementTree.register_namespace('device', UPNP_DEVICE_NS)
