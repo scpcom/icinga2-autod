@@ -25,12 +25,6 @@ getUrn = "urn:"+getSchema+":"+"service"+":"+getService+":"+"1"
 #print(url)
 #print(getUrn)
 
-def clean_tag(tag):
-    i = tag.find('}')
-    if i < 0:
-        return tag
-    return tag[i+1:]
-
 ns= {
     "u": getUrn
 }
