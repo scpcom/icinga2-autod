@@ -16,7 +16,7 @@ except ImportError:
 import time
 import socket
 import util.ianaparse as ianaparse
-from util.upnptools import upnp_process_description, upnp_print_schema, set_upnp_ns
+from util.upnptools import upnp_process_description, upnp_print_schema, upnp_get_service, set_upnp_ns
 
 try:
     import OuiLookup
@@ -295,6 +295,7 @@ def get_mac_vendor(mac):
 
 def compile_hosts(data, location):
     tr64_desc_locations = [
+        '49000/igddesc.xml',
         '49000/tr64desc.xml',
         '49000/fboxdesc.xml',
         '37215/tr064dev.xml',
@@ -332,6 +333,7 @@ def compile_hosts(data, location):
             have_snmp = 1
 
         tr64_location = ''
+        tr64_control = ''
         tr64_device = None
         prev_tr64_port = '0'
         systr64 = 0
@@ -368,6 +370,9 @@ def compile_hosts(data, location):
         devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
 
         if tr64_device is not None:
+            tr64_service = upnp_get_service(tr64_device, 'WANCommonInterfaceConfig:1')
+            if tr64_service is not None:
+                tr64_control = tr64_service.control_url
             if tr64_device.manufacturer and (sysvendor == '' or not sysvendor):
                 sysvendor = tr64_device.manufacturer
             if tr64_device.model_description and sysdesc == '':
@@ -819,7 +824,9 @@ def compile_hosts(data, location):
         if tr64_device is not None:
               tr64_location = tr64_location.split(':')[-1].split('/')
               hostvars += 'vars.tr64_port = ' + tr64_location[0] +'\n  '
-              hostvars += 'vars.tr64_desc_location = "' + tr64_location[1] + '"' +'\n  '
+              hostvars += 'vars.tr64_desc_location = "' + '/' + tr64_location[1] + '"' +'\n  '
+              if tr64_control != '':
+                  hostvars += 'vars.tr64_wancmnifc_control_url = "' + tr64_control + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
         host_entry = build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
