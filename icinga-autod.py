@@ -362,17 +362,6 @@ def compile_hosts(data, location):
             if tr64_device is not None:
                 break
 
-        if tr64_device is None:
-            sysupnp = 0
-            ret, output, err = exec_command('nmap -sU -p1900 {0}'.format(ip))
-            if ret and err:
-                sysupnp = 0
-            else:
-                sysupnp = parse_nmap_port_scan(output, '1900/udp ')
-
-            if sysupnp == 1:
-                print(str(ip) + ' ' + hostname + ' WARNING: UPnP port is open but unable to get data.')
-
         hostmac = hdata['hostmac']
         sysvendor = hdata['vendor']
         sysdesc = hdata['sysdesc']
@@ -403,6 +392,17 @@ def compile_hosts(data, location):
             hostname = hdata['hostname'].split('.')[0]
             if hostname != hdata['hostname']:
                 hostfqdn = hdata['hostname']
+
+        if tr64_device is None:
+            sysupnp = 0
+            ret, output, err = exec_command('nmap -sU -p1900 {0}'.format(ip))
+            if ret and err:
+                sysupnp = 0
+            else:
+                sysupnp = parse_nmap_port_scan(output, '1900/udp ')
+
+            if sysupnp == 1:
+                print(str(ip) + ' ' + hostname + ' WARNING: UPnP port is open but unable to get data.')
 
         if have_snmp == 0:
             syssnmp = 0
