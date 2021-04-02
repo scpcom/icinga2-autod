@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from util.upnptools import upnp_process_description, upnp_print_schema, set_upnp_ns
+from util.upnptools import upnp_process_description, upnp_print_schema, upnp_get_service, set_upnp_ns
 
 if len(sys.argv) > 1:
     set_upnp_ns(0)
@@ -22,3 +22,6 @@ if len(sys.argv) > 1:
             print('Description: '+device.model_description)
         if device.model_number:
             print('Number: '+device.model_number)
+        service = upnp_get_service(device, 'WANCommonInterfaceConfig:1')
+        if service is not None:
+            print('Service %s (type %s) %s' % (service.id, service.type, service.control_url))

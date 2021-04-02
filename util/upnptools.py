@@ -708,6 +708,17 @@ def upnp_print_schema(root, indent=''):
     for d in root.subdevices:
         upnp_print_schema(d, indent)
 
+def upnp_get_service(root, type):
+    for s in root.services:
+        if s.type != type:
+            continue
+        return s
+    for d in root.subdevices:
+        s = upnp_get_service(d, type)
+        if s is not None:
+            return s
+    return None
+
 def upnp_process_description(location):
     if UPNP_DEBUG:
         print('Getting description...')
