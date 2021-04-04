@@ -559,7 +559,7 @@ def compile_hosts(data, location):
 
                     ifna = ''
                     for name in name_output:
-                        if '.3.6.1.2.1.31.1.1.1.1.'+str(ifno) in name:
+                        if '.3.6.1.2.1.31.1.1.1.1.'+str(ifno)+' ' in name:
                             name = '.'.join(name.split('.')[11:])
                             ifna = ': '.join(name.split(': ')[1:]).strip('"')
 
