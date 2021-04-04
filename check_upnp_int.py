@@ -77,7 +77,15 @@ else:
     status = 'DOWN'
 #print('Status: '+status)
 dMaxBitRate = upnp_get_prop('NewLayer1DownstreamMaxBitRate')
+if dMaxBitRate == '':
+    dMaxBitRate = 0
+else:
+    dMaxBitRate = int(dMaxBitRate)
 uMaxBitRate = upnp_get_prop('NewLayer1UpstreamMaxBitRate')
+if uMaxBitRate == '':
+    uMaxBitRate = 0
+else:
+    uMaxBitRate = int(uMaxBitRate)
 #print('Max: '+dMaxBitRate+'/'+uMaxBitRate+' bps')
 upnp_get_action('GetAddonInfos')
 dReceiveRate = upnp_get_prop('NewByteReceiveRate')
@@ -92,10 +100,10 @@ if dReceiveRate != '' and uSendRate != '':
     uMbps = float(uSendRate)/1000000
     dMbps = "{:.1f}".format(dMbps)
     uMbps = "{:.1f}".format(uMbps)
-dWarn = ''
-dCrit = ''
-uWarn = ''
-uCrit = ''
+dWarn = int(dMaxBitRate/10*9)
+dCrit = dMaxBitRate
+uWarn = int(uMaxBitRate/10*9)
+uCrit = uMaxBitRate
 if status == 'UP':
     print("wan:{12} ({0}Mbps/{1}Mbps):1 UP: OK | 'wan_in_bps'={2};{3};{4};{5};{6} 'wan_out_bps'={7};{8};{9};{10};{11}".format(dMbps, uMbps, dReceiveRate, dWarn, dCrit, 0, dMaxBitRate, uSendRate, uWarn, uCrit, 0, uMaxBitRate, status))
 else:
