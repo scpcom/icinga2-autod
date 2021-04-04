@@ -436,6 +436,7 @@ def compile_hosts(data, location):
         is_dgs3100s1 = "false"
         is_dgs3100s2 = "false"
         is_dgs3100s3 = "false"
+        snmp_interface_ifalias = "false"
         port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr']
         alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
         # IANAifType-MIB
@@ -525,6 +526,8 @@ def compile_hosts(data, location):
                     if ifna.startswith('3:'):
                         is_dgs3100 = "true"
                         is_dgs3100s3 = "true"
+                    if ifde.startswith('Port #') and ifde == 'Port #'+ifal:
+                        snmp_interface_ifalias = "true"
 
         fix_portno = 0
         if is_dgs3100 == "true":
@@ -797,7 +800,10 @@ def compile_hosts(data, location):
                 hostvars += 'vars.snmp_v2 = "' 'true' + '"' +'\n  '
 
         if have_snmp:
-            hostvars += 'vars.snmp_interface_ifname = ' + snmp_interface_ifname +'\n  '
+            if snmp_interface_ifalias == "true":
+                hostvars += 'vars.snmp_interface_ifalias = ' + snmp_interface_ifalias +'\n  '
+            else:
+                hostvars += 'vars.snmp_interface_ifname = ' + snmp_interface_ifname +'\n  '
         if snmp_interface_64bit == "true":
             hostvars += 'vars.snmp_interface_64bit = ' + snmp_interface_64bit +'\n  '
         if snmp_interface_speed64bit == "true":
