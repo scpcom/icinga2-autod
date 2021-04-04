@@ -2206,6 +2206,18 @@
               "steppedLine": true,
               "yaxis": 2,
               "zindex": -3
+            },
+            {
+              "alias": "Inbound Max",
+              "color": "#0095BF",
+              "fill": 0,
+              "legend": false
+            },
+            {
+              "alias": "Outbound Max",
+              "color": "#ffaa44",
+              "fill": 0,
+              "legend": false
             }
           ],
           "spaceLength": 10,
@@ -2325,7 +2337,7 @@
               ]
             },
             {
-              "alias": "Downtime",
+              "alias": "Inbound Max",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -2345,6 +2357,118 @@
               "orderByTime": "ASC",
               "policy": "default",
               "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "max"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "service",
+                  "operator": "=~",
+                  "value": "/^tr64-wan-interface/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=~",
+                  "value": "/_in_bps$/"
+                }
+              ]
+            },
+            {
+              "alias": "Outbound Max",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "tr64-interface",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "max"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "hostname",
+                  "operator": "=~",
+                  "value": "/^$hostname$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "service",
+                  "operator": "=~",
+                  "value": "/^tr64-wan-interface/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "metric",
+                  "operator": "=~",
+                  "value": "/_out_bps$/"
+                }
+              ]
+            },
+            {
+              "alias": "Downtime",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$__interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "tr64-interface",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "E",
               "resultFormat": "time_series",
               "select": [
                 [
