@@ -783,4 +783,8 @@ def set_upnp_ns(on):
     ElementTree.register_namespace('service', UPNP_SERVICE_NS)
     ElementTree.register_namespace('control', UPNP_CONTROL_NS)
 
+def set_upnp_actions(on):
+    global UPNP_ACTIONS
+    UPNP_ACTIONS = on
+
 set_upnp_ns(1)
