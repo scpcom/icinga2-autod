@@ -431,6 +431,7 @@ def compile_hosts(data, location):
         ifcount = 0
         ifentries = 0
         is_comware = "false"
+        is_sg300 = "false"
         is_hp1810v2 = "false"
         is_dgs3100 = "false"
         is_dgs3100s1 = "false"
@@ -441,6 +442,7 @@ def compile_hosts(data, location):
         alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
         # IANAifType-MIB
         #   1 other
+        #  22 propPointToPointSerial
         #  23 ppp
         #  24 softwareLoopback
         #  53 propVirtual
@@ -450,7 +452,7 @@ def compile_hosts(data, location):
         # 244 wwanPP2
         # 246 ilan
         # 247 pip
-        type_filter = [1, 23, 24, 53, 131, 161, 188, 244, 246, 247]
+        type_filter = [1, 22, 23, 24, 53, 131, 161, 188, 244, 246, 247]
 
         desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
         type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
@@ -518,6 +520,8 @@ def compile_hosts(data, location):
                         #print(str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal)
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
+                    if ifna.startswith('gi') and ifde.startswith('gigabitethernet'):
+                        is_sg300 = "true"
                     if ifna.startswith('Port  '):
                         is_hp1810v2 = "true"
                     if ifna.startswith('1:'):
@@ -782,6 +786,8 @@ def compile_hosts(data, location):
         #print(str(ifcount) + ' interfaces')
         if is_comware == "true":
             hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
+        if is_sg300 == "true":
+            hostvars += 'vars.network_sg300 = "' + is_sg300 + '"' +'\n  '
         if is_hp1810v2 == "true":
             hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
         if is_dgs3100 == "true":
@@ -856,6 +862,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     linevars = hostvars.split('\n')
     is_comware = "false"
+    is_sg300 = "false"
     is_hp1810v2 = "false"
     is_dgs3100 = "false"
     is_dgs3100s1 = "false"
@@ -866,6 +873,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     for line in linevars:
         if 'vars.network_comware = ' in line:
             is_comware = line.split(' = ')[1].strip('"')
+        if 'vars.network_sg300 = ' in line:
+            is_sg300 = line.split(' = ')[1].strip('"')
         if 'vars.network_hp1810v2 = ' in line:
             is_hp1810v2 = line.split(' = ')[1].strip('"')
         if 'vars.network_dgs3100 = ' in line:
@@ -886,6 +895,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     if is_switch == "true" and int(ifcount) > 7:
         if is_comware == "true":
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
+        if is_sg300 == "true":
+            host_entry += '  import "sg300-int-{0}-ports-template"\n'.format(ifcount)
         elif is_hp1810v2 == "true":
             host_entry += '  import "hp1810v2-int-{0}-ports-template"\n'.format(ifcount)
         elif is_dgs3100s1 == "true":
