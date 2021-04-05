@@ -13,11 +13,28 @@ getAction = "GetCommonLinkProperties"
 getProperty = "NewPhysicalLinkStatus"
 
 if len(sys.argv) > 1:
-   ip = sys.argv[1]
-if len(sys.argv) > 2:
-   tr64_port = int(sys.argv[2])
-if len(sys.argv) > 3:
-   tr64_wancmnifc_control_url = sys.argv[3]
+   args = sys.argv[1:]
+   argn = ''
+   for arg in args:
+       if len(arg) == 2 and arg[0] == '-':
+           argn = arg
+       elif argn == '-H':
+           ip = arg
+       elif argn == '-p':
+           tr64_port = int(arg)
+       elif argn == '-C':
+           tr64_wancmnifc_control_url = arg
+       elif argn == '-U':
+           getSchema = arg
+       elif argn == '-S':
+           getService = arg
+       elif argn == '-A':
+           getAction = arg
+       elif argn == '-P':
+           getProperty = arg
+
+if getProperty == '*':
+    getProperty = ''
 
 url='http://'+ip+':'+str(tr64_port)+tr64_wancmnifc_control_url
 getUrn = "urn:"+getSchema+":"+"service"+":"+getService+":"+"1"
@@ -37,17 +54,40 @@ body = """<?xml version="1.0" encoding="utf-8"?>
 </s:Body>
 </s:Envelope>""".format(getAction, getUrn)
 
+bodyTag = '{'+'http://schemas.xmlsoap.org/soap/envelope/'+'}'+'Body'
+responseTag = '{'+getUrn+'}'+getAction+'Response'
+
 monitorValue = ''
+content = None
+ReturnXml = None
 try:
     response = requests.post(url,data=body,headers=headers)
 except:
     response = None
+
 if response is not None:
-    content = response.content.decode('utf8')
-    ReturnXml = ElementTree.fromstring(content)
+    try:
+        content = response.content.decode('utf8')
+    except:
+        content = None
+
+if content is not None:
+    try:
+        ReturnXml = ElementTree.fromstring(content)
+    except:
+        ReturnXml = None
+        print(content)
+
+if ReturnXml is not None:
     propreties = ReturnXml.findall(".//"+getProperty, ns)
     for p in propreties:
        monitorValue = p.text
-       break
+       if p.tag == bodyTag or p.tag == responseTag:
+           continue
+       elif getProperty == '':
+           print(p.tag+': '+p.text)
+       else:
+           break
 
-print(getProperty+': '+monitorValue)
+if getProperty != '':
+    print(getProperty+': '+monitorValue)
