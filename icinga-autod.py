@@ -304,6 +304,7 @@ def compile_hosts(data, location):
         '5000/rootDesc.xml',
         '52869/picsdesc.xml',
         '52881/simplecfg.xml',
+        '80/upnp/BasicDevice.xml',
     ]
 
     set_upnp_ns(0)
@@ -839,7 +840,7 @@ def compile_hosts(data, location):
         if tr64_device is not None:
               tr64_location = tr64_location.split(':')[-1].split('/')
               hostvars += 'vars.tr64_port = ' + tr64_location[0] +'\n  '
-              hostvars += 'vars.tr64_desc_location = "' + '/' + tr64_location[1] + '"' +'\n  '
+              hostvars += 'vars.tr64_desc_location = "' + '/' + '/'.join(tr64_location[1:]) + '"' +'\n  '
               if tr64_control != '':
                   hostvars += 'vars.tr64_wancmnifc_control_url = "' + tr64_control + '"' +'\n  '
         if hdata['hostmac'] != '':
