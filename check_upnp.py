@@ -15,6 +15,7 @@ Parameters:
 Examples:
 ./check_upnp.py -H 192.168.178.1 -P '*'
 ./check_upnp.py -H 192.168.178.1 -A GetAddonInfos -P '*'
+./check_upnp.py -H 192.168.178.1 -U schemas-any-com -C /upnp/control/fritzbox -S fritzbox -A GetMaclist -P '*'
 """
 
 ip = '192.168.0.1'
