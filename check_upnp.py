@@ -3,6 +3,20 @@ import sys
 import requests
 import xml.etree.ElementTree as ElementTree
 
+"""
+Parameters:
+  -H host
+  -p port
+  -C service control url
+  -U schema
+  -S service name
+  -A action name
+  -P property name or * for all
+Examples:
+./check_upnp.py -H 192.168.178.1 -P '*'
+./check_upnp.py -H 192.168.178.1 -A GetAddonInfos -P '*'
+"""
+
 ip = '192.168.0.1'
 tr64_port = 49000
 tr64_wancmnifc_control_url = "/igdupnp/control/WANCommonIFC1"
