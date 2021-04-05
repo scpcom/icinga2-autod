@@ -72,6 +72,7 @@ body = """<?xml version="1.0" encoding="utf-8"?>
 bodyTag = '{'+'http://schemas.xmlsoap.org/soap/envelope/'+'}'+'Body'
 responseTag = '{'+getUrn+'}'+getAction+'Response'
 
+monitorOK = False
 monitorValue = ''
 content = None
 ReturnXml = None
@@ -102,7 +103,14 @@ if ReturnXml is not None:
        elif getProperty == '':
            print(p.tag+': '+p.text)
        else:
+           monitorOK = True
            break
 
 if getProperty != '':
-    print(getProperty+': '+monitorValue)
+    #print(getProperty+': '+monitorValue)
+    if monitorOK:
+        print('UPNP OK - '+monitorValue+' |')
+    else:
+        print('External command error: Error in packet')
+        print('Reason: (noSuchName) There is no such variable name in this response.')
+        print('Failed object: '+getProperty)
