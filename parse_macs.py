@@ -8,6 +8,7 @@ deps_filename = macp_filename[:-14] + '_deps.conf'
 dups_filename = macp_filename[:-14] + '_deps_dups.conf'
 revs_filename = macp_filename[:-14] + '_deps_revs.conf'
 arps_filename = macp_filename[:-14] + '_deps_arps.conf'
+arpu_filename = macp_filename[:-14] + '_deps_arpu.conf'
 lldt_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_lldp\.csv', f)]
 mact_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_table\.csv', f)]
 macp_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_ports\.csv', f)]
@@ -47,6 +48,7 @@ deps_f = open(deps_filename, 'w')
 dups_f = open(dups_filename, 'w')
 revs_f = open(revs_filename, 'w')
 arps_f = open(arps_filename, 'w')
+arpu_f = open(arpu_filename, 'w')
 deps_list = ''
 foun_list = ''
 prev_maca = ''
@@ -162,11 +164,13 @@ for macp in macp_reader:
             local_port = ''
             if macp[0] == arpa:
                 local_port = 'arp'
+                local_service = 'ping4'
+                parent_service = 'snmp-int-port'+str(int(port_data[1]))
+                host_deps = build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, False)
                 if port_share < 3:
-                    local_service = 'ping4'
-                    parent_service = 'snmp-int-port'+str(int(port_data[1]))
-                    host_deps = build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, False)
                     arps_f.write(host_deps)
+                else:
+                    arpu_f.write(host_deps)
             print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')')
             macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
             prev_maca = macp[0]
@@ -177,3 +181,4 @@ deps_f.close()
 dups_f.close()
 revs_f.close()
 arps_f.close()
+arpu_f.close()
