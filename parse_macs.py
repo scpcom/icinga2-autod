@@ -11,6 +11,20 @@ lldt_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_lldp\.csv', f)
 mact_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_table\.csv', f)]
 macp_filenames = [f for f in os.listdir('.') if re.match(r'.*_mac_ports\.csv', f)]
 
+def build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, deps_reve):
+    host_deps = ''
+    host_deps += 'apply Dependency "switching" to Service {' +'\n'
+    host_deps += '  parent_host_name = "' + port_hostname + '"' +'\n'
+    host_deps += '  parent_service_name = "' + parent_service + '"' +'\n'
+    if deps_reve:
+        host_deps += '  disable_notifications = true' +'\n'
+    else:
+        host_deps += '  disable_checks = true' +'\n'
+    host_deps += '' +'\n'
+    host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
+    host_deps += '}' +'\n'
+    return host_deps
+
 lldt_reader = list()
 for lldt_filename in lldt_filenames:
     with open(lldt_filename) as lldt_file:
@@ -101,17 +115,7 @@ for macp in macp_reader:
 
             if port_share == 0 and not deps_skip:
                 deps_list += macp_hostname+';'+local_port+';'+port_hostname+';'+port_data[1]+'\n'
-                host_deps = ''
-                host_deps += 'apply Dependency "switching" to Service {' +'\n'
-                host_deps += '  parent_host_name = "' + port_hostname + '"' +'\n'
-                host_deps += '  parent_service_name = "' + parent_service + '"' +'\n'
-                if deps_reve:
-                    host_deps += '  disable_notifications = true' +'\n'
-                else:
-                    host_deps += '  disable_checks = true' +'\n'
-                host_deps += '' +'\n'
-                host_deps += '  assign where host.name == "' + macp_hostname + '"' + ' && service.name == "'+local_service+'"''\n'
-                host_deps += '}' +'\n'
+                host_deps = build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, deps_reve)
                 if deps_reve:
                     revs_f.write(host_deps)
                 elif port_dupl:
