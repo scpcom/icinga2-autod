@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import time
 import socket
 import struct
 import xml.etree.ElementTree as ElementTree
@@ -36,6 +37,7 @@ class HttpTransport(object):
     def __init__(self, type, proto, timeout=5):
         self.s = socket.socket(socket.AF_INET, type, proto)
         self.s.settimeout(timeout)
+        self.timeout = timeout
     def __del__(self):
         if self.s:
             self.close()
@@ -57,6 +59,7 @@ class HttpTcpTransport(HttpTransport):
         global HTTP_DEBUG
         HttpTransport.__init__(self, socket.SOCK_STREAM, socket.IPPROTO_TCP, timeout)
         self.remote_addr = remote_addr
+        self.timeout = timeout
         if HTTP_DEBUG:
             print('Connecting to %s:%d.' % remote_addr)
         self.s.connect(remote_addr)
@@ -71,6 +74,7 @@ class HttpUdpTransport(HttpTransport):
     def __init__(self, remote_addr, timeout=5):
         HttpTransport.__init__(self, socket.SOCK_DGRAM, socket.IPPROTO_UDP, timeout)
         self.remote_addr = remote_addr
+        self.timeout = timeout
     def send(self, data):
         self.s.sendto(data.encode(), self.remote_addr)
 
@@ -187,12 +191,15 @@ class HttpClient(object):
         
         response = ''
         end_of_headers = -1
+        recv_start = time.time()
         while end_of_headers < 0:
             frag, addr = self._tr.recv()
             response += frag.decode('utf8')
             end_of_headers = response.find("\r\n\r\n")
             if end_of_headers < 0:
                 end_of_headers = response.find("\n\n")
+            if time.time() - recv_start > self._tr.timeout:
+                raise socket.timeout
         body = response[end_of_headers + 4:]
         headers = response[:end_of_headers + 4]
         if HTTP_DEBUG:
