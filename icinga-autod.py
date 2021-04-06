@@ -544,6 +544,12 @@ def compile_hosts(data, location):
             if iffirst > 1 and iffirst < ifcount:
                 fix_portno = 1
 
+        fix_mactno = 0
+        if is_dgs3100 == "true" or is_sg300 == "true":
+            fix_mactno = 1
+
+        fix_lldtno = fix_mactno
+
         chassisid = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.1.1.0', '')
         if chassisid != '':
                 chassisid = ':'.join(chassisid.split(' ')[:-1])
@@ -631,7 +637,7 @@ def compile_hosts(data, location):
                         if ifno >= iffirst:
                             ifno = ifno+1-iffirst
                         else:
-                            ifno = ifno+1+ifcount-iffirst
+                            ifno = ifno+1+ifcount+1-iffirst
 
                     if maca and maca != '':
                         if ifentries < 8 and ifad == 1 and ifop == 1 and not ifskip:
@@ -660,8 +666,11 @@ def compile_hosts(data, location):
                     ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
                     line = line.split(' = ')[0]
                     line = line.split('.')[14:]
-                    if is_dgs3100 == "true":
-                        ifno = ifno+1-iffirst
+                    if fix_mactno:
+                        if ifno >= iffirst:
+                            ifno = ifno+1-iffirst
+                        else:
+                            ifno = ifno+1+ifcount+1-iffirst
                     ifno = str(ifno)
                     if int(ifno) < 10:
                         ifno = '0'+ifno
@@ -685,8 +694,11 @@ def compile_hosts(data, location):
                     ifno = int(': '.join(line.split(': ')[1:]).strip('"'))
                     line = line.split(' = ')[0]
                     line = line.split('.')[11:]
-                    if is_dgs3100 == "true":
-                        ifno = ifno+1-iffirst
+                    if fix_mactno:
+                        if ifno >= iffirst:
+                            ifno = ifno+1-iffirst
+                        else:
+                            ifno = ifno+1+ifcount+1-iffirst
                     ifno = str(ifno)
                     if int(ifno) < 10:
                         ifno = '0'+ifno
@@ -708,8 +720,11 @@ def compile_hosts(data, location):
                     ifno = int(line.split('.')[12:][0])
                     line = '.'.join(line.split('.')[13:])
                     ifnr = line.split(' = ')[0]
-                    if is_dgs3100 == "true":
-                        ifno = ifno+1-iffirst
+                    if fix_lldtno:
+                        if ifno >= iffirst:
+                            ifno = ifno+1-iffirst
+                        else:
+                            ifno = ifno+1+ifcount+1-iffirst
                     ifno = str(ifno)
                     if int(ifno) < 10:
                         ifno = '0'+ifno
