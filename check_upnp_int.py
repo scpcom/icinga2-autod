@@ -192,7 +192,13 @@ dReceiveRate = upnp_get_prop('NewByteReceiveRate')
 uSendRate = upnp_get_prop('NewByteSendRate')
 dMbps = ''
 uMbps = ''
-if dReceiveRate == '' and uSendRate == '':
+if dTotalBytesReceived == '':
+    upnp_get_action('GetTotalBytesReceived')
+    dTotalBytesReceived = upnp_get_prop('NewTotalBytesReceived')
+if uTotalBytesSent == '':
+    upnp_get_action('GetTotalBytesSent')
+    uTotalBytesSent = upnp_get_prop('NewTotalBytesSent')
+if dTotalBytesReceived != '' and uTotalBytesSent != '' and dReceiveRate == '' and uSendRate == '':
     perf_inoct = int(dTotalBytesReceived)
     perf_outoct = int(uTotalBytesSent)
     usable, rates = calc_bandwith_checks()
