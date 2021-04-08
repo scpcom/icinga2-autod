@@ -176,7 +176,7 @@ class HttpClient(object):
             responses = []
             try:
                 while True:
-                    responses.append(self._do_recv())
+                    responses.append(self._do_recv(True))
             except socket.timeout:
                 pass
             return responses
@@ -184,7 +184,7 @@ class HttpClient(object):
             response = self._do_recv()
             return (response[1], response[2], response[3])
 
-    def _do_recv(self):
+    def _do_recv(self, pass_unkown = False):
         "Internal routine. Performs response reception."
 
         global HTTP_DEBUG
@@ -248,9 +248,20 @@ class HttpClient(object):
                     buffer += frag.decode('utf8')
                 body += buffer[buffer_offset:buffer_offset + chunk_len]
                 buffer = buffer[buffer_offset + chunk_len:]
-        else:
+        elif pass_unkown:
             # Unknown transfer method
             pass
+        else:
+            end_of_body = -1
+            recv_start = time.time()
+            while end_of_body < 0:
+                frag, addr = self._tr.recv()
+                body += frag.decode('utf8')
+                end_of_body = body.find("</root>")
+                if time.time() - recv_start > self._tr.timeout:
+                    break
+            if end_of_body < 0:
+                pass
         return (addr, status, headers, body)
 
     def _parse_headers(self, text):
