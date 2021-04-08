@@ -304,7 +304,10 @@ def compile_hosts(data, location):
         '5000/rootDesc.xml',
         '52869/picsdesc.xml',
         '52881/simplecfg.xml',
+        '1900/igd.xml',
+        '80/root.sxml',
         '80/upnp/BasicDevice.xml',
+        '49152/wps_device.xml',
     ]
 
     set_upnp_ns(0)
