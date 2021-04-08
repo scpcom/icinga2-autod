@@ -308,6 +308,7 @@ def compile_hosts(data, location):
         '80/root.sxml',
         '80/upnp/BasicDevice.xml',
         '49152/wps_device.xml',
+        '5200/Printer.xml',
     ]
 
     set_upnp_ns(0)
@@ -337,6 +338,7 @@ def compile_hosts(data, location):
             have_snmp = 1
 
         tr64_location = ''
+        tr64_control_port = ''
         tr64_control = ''
         tr64_device = None
         prev_tr64_port = '0'
@@ -377,6 +379,13 @@ def compile_hosts(data, location):
             tr64_service = upnp_get_service(tr64_device, 'WANCommonInterfaceConfig:1')
             if tr64_service is not None:
                 tr64_control = tr64_service.control_url
+                end_of_proto = tr64_control.find('://')
+                if end_of_proto > 0:
+                    tr64_control = tr64_control[end_of_proto+3:].split('/')
+                    if ':' in tr64_control[0]:
+                        tr64_control_port = tr64_control[0].split(':')[1]
+                    tr64_control = '/' + '/'.join(tr64_control[1:])
+
             if tr64_device.manufacturer and (sysvendor == '' or not sysvendor):
                 sysvendor = tr64_device.manufacturer
             if tr64_device.model_description and sysdesc == '':
@@ -857,7 +866,11 @@ def compile_hosts(data, location):
              hostvars += 'vars.snmp_storage_disk_name = "' + snmp_storage_disk_name + '"' +'\n  '
         if tr64_device is not None:
               tr64_location = tr64_location.split(':')[-1].split('/')
-              hostvars += 'vars.tr64_port = ' + tr64_location[0] +'\n  '
+              if tr64_control_port != '':
+                  hostvars += 'vars.tr64_port = ' + tr64_control_port +'\n  '
+                  hostvars += 'vars.tr64_desc_port = ' + tr64_location[0] +'\n  '
+              else:
+                  hostvars += 'vars.tr64_port = ' + tr64_location[0] +'\n  '
               hostvars += 'vars.tr64_desc_location = "' + '/' + '/'.join(tr64_location[1:]) + '"' +'\n  '
               if tr64_control != '':
                   hostvars += 'vars.tr64_wancmnifc_control_url = "' + tr64_control + '"' +'\n  '
