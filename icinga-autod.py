@@ -1021,16 +1021,20 @@ def compile_hvars(sysdesc, devdesc):
         'Lexmark MS': 'vars.network_printer = "true"',
         'Lexmark MX': 'vars.network_printer = "true"',
         'Lexmark XM': 'vars.network_printer = "true"',
+        'Network Printer': 'vars.network_printer = "true"',
         'Printing System': 'vars.network_printer = "true"',
         'Linux':'vars.os = "Linux"',
         'Windows':'vars.os = "Windows"',
         'APC Web/SNMP': 'vars.ups_apc = "true"',
     }
     dev_descriptors = {
+        'Brother HL': 'vars.network_printer = "true"',
+        'Brother MFC': 'vars.network_printer = "true"',
         'Laserjet': 'vars.network_printer = "true"',
         'LaserJet': 'vars.network_printer = "true"',
         'Officejet': 'vars.network_printer = "true"',
         'OfficeJet': 'vars.network_printer = "true"',
+        'Samsung ML': 'vars.network_printer = "true"',
         'SHARP MX': 'vars.network_printer = "true"',
     }
 
