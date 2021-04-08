@@ -375,6 +375,9 @@ def compile_hosts(data, location):
         sysdesc = hdata['sysdesc']
         devdesc = snmpwalk_get_value(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.2.1.3.1', '')
 
+        if sysvendor == 'Reserved':
+            sysvendor = None
+
         if tr64_device is not None:
             tr64_service = upnp_get_service(tr64_device, 'WANCommonInterfaceConfig:1')
             if tr64_service is not None:
@@ -451,7 +454,8 @@ def compile_hosts(data, location):
         is_dgs3100s2 = "false"
         is_dgs3100s3 = "false"
         snmp_interface_ifalias = "false"
-        port_filter = ['IP Interface', 'CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi']
+        port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi']
+        # 'IP Interface',
         alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
         # IANAifType-MIB
         #   1 other
@@ -1011,6 +1015,7 @@ def compile_hvars(sysdesc, devdesc):
         'DGS-1210': 'vars.network_switch = "true"',
         'Managed Switch': 'vars.network_switch = "true"',
         'SMC8024L': 'vars.network_switch = "true"',
+        'Gigabit Switch': 'vars.network_switch = "true"',
         'Canon iR': 'vars.network_printer = "true"',
         'Lexmark CS': 'vars.network_printer = "true"',
         'Lexmark MS': 'vars.network_printer = "true"',
