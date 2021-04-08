@@ -459,13 +459,14 @@ def compile_hosts(data, location):
         #  23 ppp
         #  24 softwareLoopback
         #  53 propVirtual
+        #  71 ieee80211
         # 131 tunnel
         # 161 ieee8023adLag
         # 188 radioMAC
         # 244 wwanPP2
         # 246 ilan
         # 247 pip
-        type_filter = [1, 22, 23, 24, 53, 131, 161, 188, 244, 246, 247]
+        type_filter = [1, 22, 23, 24, 53, 71, 131, 161, 188, 244, 246, 247]
 
         desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
         type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
