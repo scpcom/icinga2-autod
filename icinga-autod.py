@@ -193,7 +193,7 @@ def main():
 def vendor_match(numbers, sysobject):
     if sysobject:
         #Possible prefixes in sysObjectID OID largely dependent on MIB used
-        prefixes = ['SNMPv2-SMI::enterprises.', 'iso.3.6.1.4.1.', '1.3.6.1.4.1.', 'NET-SNMP-MIB::netSnmpAgentOIDs.']
+        prefixes = ['SNMPv2-SMI::enterprises.', 'iso.3.6.1.4.1.', '1.3.6.1.4.1.', 'NET-SNMP-MIB::netSnmpAgentOIDs.', 'ccitt.']
 
         for prefix in prefixes:
             if sysobject.startswith(prefix):
