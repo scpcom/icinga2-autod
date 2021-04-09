@@ -1017,6 +1017,8 @@ def compile_hvars(sysdesc, devdesc):
         'SMC8024L': 'vars.network_switch = "true"',
         'Gigabit Switch': 'vars.network_switch = "true"',
         'Canon iR': 'vars.network_printer = "true"',
+        'Develop ineo': 'vars.network_printer = "true"',
+        'JETDIRECT': 'vars.network_printer = "true"',
         'Lexmark CS': 'vars.network_printer = "true"',
         'Lexmark MS': 'vars.network_printer = "true"',
         'Lexmark MX': 'vars.network_printer = "true"',
