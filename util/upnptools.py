@@ -209,10 +209,13 @@ class HttpClient(object):
         
         if 'CONTENT-LENGTH' in headers:
             content_length = int(headers['CONTENT-LENGTH']) - len(body)
+            recv_start = time.time()
             while content_length > 0:
                 frag, addr = self._tr.recv()
                 body += frag.decode('utf8')
                 content_length -= len(frag)
+                if time.time() - recv_start > self._tr.timeout:
+                    raise socket.timeout
         elif 'TRANSFER-ENCODING' in headers and headers['TRANSFER-ENCODING'].lower() == 'chunked':
             buffer = body
             body = ''
