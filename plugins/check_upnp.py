@@ -101,7 +101,10 @@ if ReturnXml is not None:
        if p.tag == bodyTag or p.tag == responseTag:
            continue
        elif getProperty == '':
-           print(p.tag+': '+p.text)
+           if p.text is None:
+               print(p.tag)
+           else:
+               print(p.tag+': '+p.text)
        else:
            monitorOK = True
            break
