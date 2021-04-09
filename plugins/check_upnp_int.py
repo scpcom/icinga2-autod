@@ -76,6 +76,7 @@ def write_check_file(check_filename, check_row):
 # based on code from check_snmp_int.pl
 def calc_bandwith_checks():
     usable_data  = 1
+    checkperf_out_raw = [ None, None ]
     # Make the bandwith checks if necessary
     if (o_checkperf and int_status == 1):
         temp_file_name = descr
@@ -85,7 +86,6 @@ def calc_bandwith_checks():
         r_code, n_rows, file_values = read_check_file(temp_file_name)
         #print("File read returns : "+str(r_code)+" with "+str(n_rows)+" rows")
 
-        checkperf_out_raw = [ None, None ]
         # make the checks if the file is OK
         if (r_code == 0):
             j = n_rows - 1
@@ -122,7 +122,9 @@ def calc_bandwith_checks():
         if not checkperf_out_raw[0]:
             #print(" No usable data on file (" + str(n_rows) + " rows) ")
             usable_data  = 0
-        return usable_data, checkperf_out_raw
+    else:
+        usable_data  = 0
+    return usable_data, checkperf_out_raw
 
 def upnp_get_action(actionName):
     global ReturnXml
