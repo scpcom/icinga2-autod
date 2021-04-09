@@ -1023,6 +1023,7 @@ def compile_hvars(sysdesc, devdesc):
         'Lexmark MS': 'vars.network_printer = "true"',
         'Lexmark MX': 'vars.network_printer = "true"',
         'Lexmark XM': 'vars.network_printer = "true"',
+        'Lexmark T6': 'vars.network_printer = "true"',
         'Network Printer': 'vars.network_printer = "true"',
         'Printing System': 'vars.network_printer = "true"',
         'Linux':'vars.os = "Linux"',
