@@ -1059,6 +1059,7 @@ def compile_hvars(sysdesc, devdesc):
         'LaserJet': 'vars.network_printer = "true"',
         'Officejet': 'vars.network_printer = "true"',
         'OfficeJet': 'vars.network_printer = "true"',
+        'Samsung CL': 'vars.network_printer = "true"',
         'Samsung ML': 'vars.network_printer = "true"',
         'SHARP MX': 'vars.network_printer = "true"',
     }
