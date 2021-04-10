@@ -83,6 +83,7 @@ def build_parser():
 def main():
 
     global debug
+    global thorough
 
     parser = build_parser()
     args = parser.parse_args()
@@ -96,6 +97,10 @@ def main():
         debug = True
     else:
         debug = False
+    if args.thorough:
+        thorough = True
+    else:
+        thorough = False
     
     start_time = time.time()
 
@@ -984,6 +989,18 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         syshttp = 0
     else:
         syshttp = parse_nmap_port_scan(output, '80/tcp ')
+
+    althttp_ports = [ 1080, 1443, 3128, 8080, 8443, 10080, 10443 ]
+    if thorough:
+        for port in althttp_ports:
+            althttp = 0
+            ret, output, err = exec_command('nmap -p{0} {1}'.format(port, ip))
+            if ret and err:
+                althttp = 0
+            else:
+                althttp = parse_nmap_port_scan(output, '{0}/tcp '.format(port))
+            if althttp:
+                print(str(ip) + ' ' + hostname + ' port '+str(port)+' open')
 
     if syshttp == 1:
         host_entry += '  vars.http_vhosts["http"] = {\n'
