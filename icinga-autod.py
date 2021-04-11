@@ -454,6 +454,7 @@ def compile_hosts(data, location):
         is_comware = "false"
         is_sg300 = "false"
         is_hp1810v2 = "false"
+        is_des1210 = "false"
         is_dgs3100 = "false"
         is_dgs3100s1 = "false"
         is_dgs3100s2 = "false"
@@ -555,6 +556,8 @@ def compile_hosts(data, location):
                         is_sg300 = "true"
                     if ifna.startswith('Port  '):
                         is_hp1810v2 = "true"
+                    if ifna.startswith('Slot0/'):
+                        is_des1210 = "true"
                     if ifna.startswith('1:'):
                         is_dgs3100 = "true"
                         is_dgs3100s1 = "true"
@@ -836,6 +839,8 @@ def compile_hosts(data, location):
             hostvars += 'vars.network_sg300 = "' + is_sg300 + '"' +'\n  '
         if is_hp1810v2 == "true":
             hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
+        if is_des1210 == "true":
+            hostvars += 'vars.network_des1210 = "' + is_des1210 + '"' +'\n  '
         if is_dgs3100 == "true":
             hostvars += 'vars.network_dgs3100 = "' + is_dgs3100 + '"' +'\n  '
         if is_dgs3100s1 == "true":
@@ -914,6 +919,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     is_comware = "false"
     is_sg300 = "false"
     is_hp1810v2 = "false"
+    is_des1210 = "false"
     is_dgs3100 = "false"
     is_dgs3100s1 = "false"
     is_dgs3100s2 = "false"
@@ -927,6 +933,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             is_sg300 = line.split(' = ')[1].strip('"')
         if 'vars.network_hp1810v2 = ' in line:
             is_hp1810v2 = line.split(' = ')[1].strip('"')
+        if 'vars.network_des1210 = ' in line:
+            is_des1210 = line.split(' = ')[1].strip('"')
         if 'vars.network_dgs3100 = ' in line:
             is_dgs3100 = line.split(' = ')[1].strip('"')
         if 'vars.network_dgs3100s1 = ' in line:
@@ -949,6 +957,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             host_entry += '  import "sg300-int-{0}-ports-template"\n'.format(ifcount)
         elif is_hp1810v2 == "true":
             host_entry += '  import "hp1810v2-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_des1210 == "true":
+            host_entry += '  import "des1210-int-{0}-ports-template"\n'.format(ifcount)
         elif is_dgs3100s1 == "true":
             host_entry += '  import "dgs3100s1-int-{0}-ports-template"\n'.format(ifcount)
         elif is_dgs3100s2 == "true":
@@ -1037,6 +1047,7 @@ def compile_hvars(sysdesc, devdesc):
         'PROCURVE': 'vars.network_switch = "true"',
         'PoEP Switch': 'vars.network_switch = "true"',
         'SuperStack': 'vars.network_switch = "true"',
+        'DES-1210': 'vars.network_switch = "true"',
         'DGS-1210': 'vars.network_switch = "true"',
         'Managed Switch': 'vars.network_switch = "true"',
         'SmartPro Switch': 'vars.network_switch = "true"',
