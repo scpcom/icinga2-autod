@@ -470,12 +470,14 @@ def compile_hosts(data, location):
         #  53 propVirtual
         #  71 ieee80211
         # 131 tunnel
+        # 135 l2vlan
+        # 142 ipForward
         # 161 ieee8023adLag
         # 188 radioMAC
         # 244 wwanPP2
         # 246 ilan
         # 247 pip
-        type_filter = [1, 22, 23, 24, 53, 71, 131, 161, 188, 244, 246, 247]
+        type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 161, 188, 244, 246, 247]
 
         desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
         type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
@@ -935,7 +937,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             is_switch = line.split(' = ')[1].strip('"')
         if 'vars.network_ports = ' in line:
             ifcount = line.split(' = ')[1]
-    if is_comware == "true" and is_switch != "true":
+    if (is_comware == "true" or is_hp1810v2 == "true") and is_switch != "true":
         is_switch = "true"
         hostvars += 'vars.network_switch = "' + is_switch + '"' +'\n  '
     if is_switch == "true" and int(ifcount) > 7:
@@ -1035,6 +1037,7 @@ def compile_hvars(sysdesc, devdesc):
         'SuperStack': 'vars.network_switch = "true"',
         'DGS-1210': 'vars.network_switch = "true"',
         'Managed Switch': 'vars.network_switch = "true"',
+        'SmartPro Switch': 'vars.network_switch = "true"',
         'SMC8024L': 'vars.network_switch = "true"',
         'Gigabit Switch': 'vars.network_switch = "true"',
         'Canon iR': 'vars.network_printer = "true"',
