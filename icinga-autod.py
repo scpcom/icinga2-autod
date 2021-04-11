@@ -1041,6 +1041,7 @@ def compile_hvars(sysdesc, devdesc):
         'Managed Switch': 'vars.network_switch = "true"',
         'SmartPro Switch': 'vars.network_switch = "true"',
         'SMC8024L': 'vars.network_switch = "true"',
+        'Ethernet Switch': 'vars.network_switch = "true"',
         'Gigabit Switch': 'vars.network_switch = "true"',
         'WebSmart Switch': 'vars.network_switch = "true"',
         'Canon iR': 'vars.network_printer = "true"',
