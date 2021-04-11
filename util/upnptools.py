@@ -563,6 +563,8 @@ class UpnpService(object):
         except:
             scpd_url = self.scpd_url
             if self._root.url_base is not None:
+                if self._root.url_base.endswith('/') and scpd_url.startswith('/'):
+                    scpd_url = scpd_url[1:]
                 scpd_url = self._root.url_base + scpd_url
             sd = self._descriptor = self._root.get_scpd(self.type, scpd_url)
             return sd
