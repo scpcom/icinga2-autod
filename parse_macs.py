@@ -2,8 +2,25 @@
 import csv
 import os
 import re
+import sys
+from uuid import getnode as get_mac
+
+try:
+    import OuiLookup
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'ouilookup'))
+    try:
+        import OuiLookup
+    except ImportError:
+        print('WARNING: OuiLookup not available.')
+    except SyntaxError:
+        print('WARNING: OuiLookup not compatible with this python version.')
+
+h = iter(hex(get_mac())[2:].zfill(12))
+my_mac = ":".join(i + next(h) for i in h).upper()
 macp_filename = 'discovered_hosts_mac_ports.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
+macu_filename = macp_filename[:-14] + '_mac_unknown.csv'
 deps_filename = macp_filename[:-14] + '_deps.conf'
 dups_filename = macp_filename[:-14] + '_deps_dups.conf'
 revs_filename = macp_filename[:-14] + '_deps_revs.conf'
@@ -27,6 +44,25 @@ def build_deps_entry(macp_hostname, local_service, port_hostname, parent_service
     host_deps += '}' +'\n'
     return host_deps
 
+def get_mac_vendor(mac, default=''):
+    mac_vendor = default
+    if mac == '':
+        return mac_vendor
+    try:
+        ouilookup = OuiLookup.OuiLookup(logger_level=OuiLookup.LOGGER_LEVEL_DEFAULT)
+        response = ouilookup.query(expression=mac)
+    except NameError:
+        return mac_vendor
+    for item in response:
+        for value in item.values():
+            mac_vendor = value
+            break
+        if mac_vendor:
+            break
+    if mac_vendor is None:
+        mac_vendor = default
+    return mac_vendor
+
 lldt_reader = list()
 for lldt_filename in lldt_filenames:
     with open(lldt_filename) as lldt_file:
@@ -44,6 +80,7 @@ for macp_filename in macp_filenames:
 
 macf_f = open(macf_filename, 'w')
 macf_f.write('port-mac;port-host-ip;port-host-name;port-id;remote-host-ip;remote-host-name;remote-id;shared-count' +'\n');
+macu_f = open(macu_filename, 'w')
 deps_f = open(deps_filename, 'w')
 dups_f = open(dups_filename, 'w')
 revs_f = open(revs_filename, 'w')
@@ -182,3 +219,31 @@ dups_f.close()
 revs_f.close()
 arps_f.close()
 arpu_f.close()
+for lldt in lldt_reader:
+    found = 0
+    for macp in macp_reader:
+        if lldt[0] == macp[0]:
+            found = 1
+            break
+    if not found:
+        print('Unknown LLD: '+lldt[0])
+        macu_f.write(lldt[0] + ';' + 'lld' + ';' + get_mac_vendor(lldt[0]) +'\n')
+macu_list = ''
+for mact in mact_reader:
+    found = 0
+    for macp in macp_reader:
+        if mact[0] == macp[0]:
+            found = 1
+            break
+    if not found:
+        if mact[0] == my_mac:
+            found = 1
+    if not found:
+        for macu in macu_list.split('\n'):
+            if mact[0] == macu:
+                found = 1
+    if not found:
+        macu_list += mact[0] +'\n'
+        print('Unknown MAC: '+mact[0])
+        macu_f.write(mact[0] + ';' + 'mac' + ';' + get_mac_vendor(mact[0]) +'\n')
+macu_f.close()
