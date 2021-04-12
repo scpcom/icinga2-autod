@@ -298,6 +298,13 @@ def get_mac_vendor(mac):
             break
     return mac_vendor
 
+def port_str(no):
+    global is_dgs3100s2
+
+    if is_dgs3100s2 and no > 50:
+        return '2:'+str(no-50)
+    return str(no)
+
 def get_vlan_desc(vlegre, vlunta):
     es = vlegre.split(' ')
     us = vlunta.split(' ')
@@ -323,9 +330,9 @@ def get_vlan_desc(vlegre, vlunta):
                     #ed += str(px)+','
                 if prev_t != t:
                     if px-1 > f:
-                        s = str(f)+'-'+str(px-1)+','
+                        s = port_str(f)+'-'+port_str(px-1)+','
                     else:
-                        s = str(f)+','
+                        s = port_str(f)+','
                     if prev_t == 2:
                         ud += s
                     elif prev_t == 1:
@@ -335,9 +342,9 @@ def get_vlan_desc(vlegre, vlunta):
                 px+=1
           ix += 1
         if px-1 > f:
-            s = str(f)+'-'+str(px-1)+','
+            s = port_str(f)+'-'+port_str(px-1)+','
         else:
-            s = str(f)+','
+            s = port_str(f)+','
         if prev_t == 2:
             ud += s
         elif prev_t == 1:
@@ -347,6 +354,8 @@ def get_vlan_desc(vlegre, vlunta):
     return ed, ud
 
 def compile_hosts(data, location):
+    global is_dgs3100s2
+
     tr64_desc_locations = [
         '49000/igddesc.xml',
         '49000/tr64desc.xml',
