@@ -327,11 +327,13 @@ def compile_hosts(data, location):
     macp_filename = filename.replace('.conf', '_mac_ports.csv')
     mact_filename = filename.replace('.conf', '_mac_table.csv')
     lldt_filename = filename.replace('.conf', '_mac_lldp.csv')
+    vlan_filename = filename.replace('.conf', '_vlans.csv')
 
     f = open(filename, 'w')
     macp_f = open(macp_filename, 'w')
     mact_f = open(mact_filename, 'w')
     lldt_f = open(lldt_filename, 'w')
+    vlan_f = open(vlan_filename, 'w')
 
     try:
         data_items = data.iteritems()
@@ -806,6 +808,36 @@ def compile_hosts(data, location):
                     have_lldt = 1
                     lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde +'\n')
 
+        output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.4.3.1.1')
+        if len(output) > 0:
+            if '.3.6.1.2.1.17.7.1.4.3.1.1.' in output[0]:
+                print(str(ip) + ' ' + hdata['hostname'] + ' got VLAN Table')
+                egre_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.4.3.1.2')
+                forb_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.4.3.1.3')
+                unta_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.4.3.1.4')
+            for line in output:
+                if '.3.6.1.2.1.17.7.1.4.3.1.1.' in line:
+                    line = '.'.join(line.split('.')[13:])
+                    vlnr = line.split(' = ')[0]
+                    vlna = ': '.join(line.split(': ')[1:]).strip('"')
+                    vlegre = ''
+                    for egre in egre_output:
+                        if '.3.6.1.2.1.17.7.1.4.3.1.2.'+vlnr+' ' in egre:
+                            vlegre = ': '.join(egre.split(': ')[1:]).strip('"')
+                            break
+                    vlforb = ''
+                    for forb in forb_output:
+                        if '.3.6.1.2.1.17.7.1.4.3.1.3.'+vlnr+' ' in forb:
+                            vlforb = ': '.join(forb.split(': ')[1:]).strip('"')
+                            break
+                    vlunta = ''
+                    for unta in unta_output:
+                        if '.3.6.1.2.1.17.7.1.4.3.1.4.'+vlnr+' ' in unta:
+                            vlunta = ': '.join(unta.split(': ')[1:]).strip('"')
+                            break
+                    #print(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+vlunta)
+                    vlan_f.write(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+ vlunta+';' + str(ip) + ';' + hdata['hostname'] +'\n')
+
         snmp_load_type = ""
         if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
             snmp_load_type = "stand"
@@ -941,6 +973,7 @@ def compile_hosts(data, location):
     macp_f.close()
     mact_f.close()
     lldt_f.close()
+    vlan_f.close()
 
     return filename
 
