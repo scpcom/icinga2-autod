@@ -767,7 +767,7 @@ def compile_hosts(data, location):
                     ifnr = line.split(' = ')[0]
                     ifrpid = ''
                     for rpid in rpid_output:
-                        if '.0.8802.1.1.2.1.4.1.1.7.'+ifid in rpid:
+                        if '.0.8802.1.1.2.1.4.1.1.7.'+ifid+' ' in rpid:
                             ifrpid = ': '.join(rpid.split(': ')[1:]).strip('"')
                             if ' = Hex-STRING: ' in rpid:
                                 ifrpid = ':'.join(ifrpid.split(' '))
@@ -776,17 +776,17 @@ def compile_hosts(data, location):
                             break
                     ifrpde = ''
                     for rpde in rpde_output:
-                        if '.0.8802.1.1.2.1.4.1.1.8.'+ifid in rpde:
+                        if '.0.8802.1.1.2.1.4.1.1.8.'+ifid+' ' in rpde:
                             ifrpde = ': '.join(rpde.split(': ')[1:]).strip('"')
                             break
                     ifrsid = ''
                     for rsid in rsid_output:
-                        if '.0.8802.1.1.2.1.4.1.1.9.'+ifid in rsid:
+                        if '.0.8802.1.1.2.1.4.1.1.9.'+ifid+' ' in rsid:
                             ifrsid = ': '.join(rsid.split(': ')[1:]).strip('"')
                             break
                     ifrsde = ''
                     for rsde in rsde_output:
-                        if '.0.8802.1.1.2.1.4.1.1.10.'+ifid in rsde:
+                        if '.0.8802.1.1.2.1.4.1.1.10.'+ifid+' ' in rsde:
                             ifrsde = ': '.join(rsde.split(': ')[1:]).strip('"')
                             break
                     if fix_lldtno:
