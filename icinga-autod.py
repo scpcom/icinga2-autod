@@ -599,10 +599,14 @@ def compile_hosts(data, location):
                 macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
             for line in phys_output:
                 if '.3.6.1.2.1.2.2.1.6.' in line:
-                    line = line.split('.')[-1]
+                    line = '.'.join(line.split('.')[10:])
+                    #line = line.split('.')[-1]
                     ifno = int(line.split(' = ')[0])
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
                     maca = ':'.join(maca.split(' ')[:-1])
+
+                    if maca.startswith('|.') or maca.startswith('00:00:00:00:00:00'):
+                        maca = ''
 
                     ifna = ''
                     for name in name_output:
