@@ -313,6 +313,7 @@ def compile_hosts(data, location):
         '80/root.sxml',
         '80/upnp/BasicDevice.xml',
         '49152/wps_device.xml',
+        '49152/rootdesc1.xml',
         '5200/Printer.xml',
     ]
 
