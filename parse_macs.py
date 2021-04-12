@@ -21,6 +21,7 @@ my_mac = ":".join(i + next(h) for i in h).upper()
 macp_filename = 'discovered_hosts_mac_ports.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
 macu_filename = macp_filename[:-14] + '_mac_unknown.csv'
+maca_filename = macp_filename[:-14] + '_mac_all.csv'
 deps_filename = macp_filename[:-14] + '_deps.conf'
 dups_filename = macp_filename[:-14] + '_deps_dups.conf'
 revs_filename = macp_filename[:-14] + '_deps_revs.conf'
@@ -63,6 +64,26 @@ def get_mac_vendor(mac, default=''):
         mac_vendor = default
     return mac_vendor
 
+def read_check_file(check_filename):
+    check_reader = list()
+    r_code = 1
+    try:
+        with open(check_filename) as check_file:
+            check_reader += list( csv.reader(check_file, delimiter=';') )
+            r_code = 0
+    except FileNotFoundError:
+        check_reader = list()
+    n_rows = len(check_reader)
+    return r_code, n_rows, check_reader
+
+def write_check_file(check_filename, check_row):
+    r_code = 1
+    with open(check_filename, 'a') as check_file:
+        check_writer = csv.writer(check_file, delimiter=';')
+        check_writer.writerow(check_row)
+        r_code = 0
+    return r_code
+
 lldt_reader = list()
 for lldt_filename in lldt_filenames:
     with open(lldt_filename) as lldt_file:
@@ -86,8 +107,10 @@ dups_f = open(dups_filename, 'w')
 revs_f = open(revs_filename, 'w')
 arps_f = open(arps_filename, 'w')
 arpu_f = open(arpu_filename, 'w')
+r_code, n_rows, maca_values = read_check_file(maca_filename)
 deps_list = ''
 foun_list = ''
+maca_list = ''
 prev_maca = ''
 arpa = ''
 for macp in macp_reader:
@@ -99,6 +122,19 @@ for macp in macp_reader:
     port_data = {}
     if macp[1] == 'arp':
         arpa = macp[0]
+
+    mac_found = 0
+    for maca in maca_values:
+        if maca[0] == macp[0]:
+            mac_found = 1
+            break
+    for maca in maca_list.split('\n'):
+        if maca.startswith(macp[0]):
+            mac_found = 1
+            break
+    if not mac_found:
+        #print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' new MAC')
+        maca_list += macp[0] + ';' + macp_ip + ';' + macp_hostname + '\n';
 
     for lldt in lldt_reader:
         if macp[0] == lldt[0]:
@@ -236,6 +272,11 @@ for mact in mact_reader:
             found = 1
             break
     if not found:
+        for maca in maca_values:
+            if mact[0] == maca[0]:
+                found = 1
+                break
+    if not found:
         if mact[0] == my_mac:
             found = 1
     if not found:
@@ -247,3 +288,8 @@ for mact in mact_reader:
         print('Unknown MAC: '+mact[0])
         macu_f.write(mact[0] + ';' + 'mac' + ';' + get_mac_vendor(mact[0]) +'\n')
 macu_f.close()
+for maca in maca_list.split('\n'):
+    maca = maca.split(';')
+    if maca[0] != '':
+        print('New MAC: '+' '.join(maca))
+        r_code = write_check_file(maca_filename, maca)
