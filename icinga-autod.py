@@ -301,7 +301,7 @@ def get_mac_vendor(mac):
 def port_str(no):
     global is_dgs3100s2
 
-    if is_dgs3100s2 and no > 50:
+    if is_dgs3100s2 == "true" and no > 50:
         return '2:'+str(no-50)
     return str(no)
 
