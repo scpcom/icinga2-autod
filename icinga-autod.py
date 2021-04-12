@@ -298,6 +298,54 @@ def get_mac_vendor(mac):
             break
     return mac_vendor
 
+def get_vlan_desc(vlegre, vlunta):
+    es = vlegre.split(' ')
+    us = vlunta.split(' ')
+    ed = 'T'
+    ud = 'U'
+    if len(es) == len(us):
+        ix = 0
+        px = 1
+        f = px
+        prev_t = 255
+        for e in es:
+          u = us[ix]
+          if len(u) == 2:
+            e = int(e, 16)
+            u = int(u, 16)
+            for bit in reversed(range(8)):
+                t = 0
+                if u & (1 << bit):
+                    t = 2
+                    #ud += str(px)+','
+                elif e & (1 << bit):
+                    t = 1
+                    #ed += str(px)+','
+                if prev_t != t:
+                    if px-1 > f:
+                        s = str(f)+'-'+str(px-1)+','
+                    else:
+                        s = str(f)+','
+                    if prev_t == 2:
+                        ud += s
+                    elif prev_t == 1:
+                        ed += s
+                    f = px
+                    prev_t = t
+                px+=1
+          ix += 1
+        if px-1 > f:
+            s = str(f)+'-'+str(px-1)+','
+        else:
+            s = str(f)+','
+        if prev_t == 2:
+            ud += s
+        elif prev_t == 1:
+            ed += s
+    ed = ed[:-1]
+    ud = ud[:-1]
+    return ed, ud
+
 def compile_hosts(data, location):
     tr64_desc_locations = [
         '49000/igddesc.xml',
@@ -836,8 +884,9 @@ def compile_hosts(data, location):
                         if '.3.6.1.2.1.17.7.1.4.3.1.4.'+vlnr+' ' in unta:
                             vlunta = ': '.join(unta.split(': ')[1:]).strip('"')
                             break
+                    ed, ud = get_vlan_desc(vlegre, vlunta)
                     #print(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+vlunta)
-                    vlan_f.write(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+ vlunta+';' + str(ip) + ';' + hdata['hostname'] +'\n')
+                    vlan_f.write(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+ vlunta+';' + str(ip) + ';' + hdata['hostname']+';'+ed+';'+ud +'\n')
 
         snmp_load_type = ""
         if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
