@@ -752,11 +752,41 @@ def compile_hosts(data, location):
         if len(output) > 0:
             if '.0.8802.1.1.2.1.4.1.1.5.' in output[0]:
                 print(str(ip) + ' ' + hdata['hostname'] + ' got LLDP Table')
+                rpid_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.7')
+                rpde_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.8')
+                rsid_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.9')
+                rsde_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.10')
+
             for line in output:
                 if '.0.8802.1.1.2.1.4.1.1.5.' in line:
+                    ifid = '.'.join(line.split('.')[11:14]).split(' = ')[0]
                     ifno = int(line.split('.')[12:][0])
                     line = '.'.join(line.split('.')[13:])
                     ifnr = line.split(' = ')[0]
+                    ifrpid = ''
+                    for rpid in rpid_output:
+                        if '.0.8802.1.1.2.1.4.1.1.7.'+ifid in rpid:
+                            ifrpid = ': '.join(rpid.split(': ')[1:]).strip('"')
+                            if ' = Hex-STRING: ' in rpid:
+                                ifrpid = ':'.join(ifrpid.split(' '))
+                                if ifrpid.endswith(':'):
+                                    ifrpid = ifrpid[:-1]
+                            break
+                    ifrpde = ''
+                    for rpde in rpde_output:
+                        if '.0.8802.1.1.2.1.4.1.1.8.'+ifid in rpde:
+                            ifrpde = ': '.join(rpde.split(': ')[1:]).strip('"')
+                            break
+                    ifrsid = ''
+                    for rsid in rsid_output:
+                        if '.0.8802.1.1.2.1.4.1.1.9.'+ifid in rsid:
+                            ifrsid = ': '.join(rsid.split(': ')[1:]).strip('"')
+                            break
+                    ifrsde = ''
+                    for rsde in rsde_output:
+                        if '.0.8802.1.1.2.1.4.1.1.10.'+ifid in rsde:
+                            ifrsde = ': '.join(rsde.split(': ')[1:]).strip('"')
+                            break
                     if fix_lldtno:
                         if ifno >= iffirst:
                             ifno = ifno+1-iffirst
@@ -774,7 +804,7 @@ def compile_hosts(data, location):
                         maca = maca[:2] + ':' + maca[2:4] + ':' + maca[4:6] + ':' + maca[6:8] + ':' + maca[8:10] + ':' + maca[10:12]
                     #print(ifno+';'+ifnr+';'+maca)
                     have_lldt = 1
-                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] +'\n')
+                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde +'\n')
 
         snmp_load_type = ""
         if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
