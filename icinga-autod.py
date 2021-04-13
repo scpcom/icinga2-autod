@@ -663,9 +663,10 @@ def compile_hosts(data, location):
                     #line = line.split('.')[-1]
                     ifno = int(line.split(' = ')[0])
                     maca = ': '.join(line.split(': ')[1:]).strip('"')
+                    if maca.endswith(' RAS'):
+                        maca = ''
                     maca = ':'.join(maca.split(' ')[:-1])
-
-                    if maca.startswith('|.') or maca.startswith('00:00:00:00:00:00'):
+                    if maca.startswith('00:00:00:00:00:00'):
                         maca = ''
 
                     ifna = ''
