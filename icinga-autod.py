@@ -364,6 +364,7 @@ def compile_hosts(data, location):
         '49300/description.xml',
         '49152/IGDdevicedesc_brlan0.xml',
         '5000/rootDesc.xml',
+        '65530/root.sxml',
         '52869/picsdesc.xml',
         '52881/simplecfg.xml',
         '1900/igd.xml',
