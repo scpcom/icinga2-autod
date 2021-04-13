@@ -544,12 +544,12 @@ class UpnpService(object):
         o = UpnpService(root)
         for child in xml:
             tag = clean_tag(child.tag)
-            if tag == 'serviceType':
+            if tag == 'serviceType' and not child.text is None:
                 o.type_urn = URN(child.text)
                 o.type = ':'.join(o.type_urn.frags[1:])
             elif tag == 'SCPDURL':
                 o.scpd_url = child.text
-            elif tag == 'serviceId':
+            elif tag == 'serviceId' and not child.text is None:
                 o.id = ':'.join(URN(child.text).frags[1:])
             elif tag == 'controlURL':
                 o.control_url = child.text
@@ -632,7 +632,7 @@ class UpnpDevice(object):
 
     @staticmethod
     def _parse_node(o, tag, node):
-        if tag == 'deviceType':
+        if tag == 'deviceType' and not node.text is None:
             o.type_urn = URN(node.text)
             o.type = ':'.join(o.type_urn.frags[1:])
         elif tag == 'friendlyName':
