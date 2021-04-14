@@ -204,7 +204,7 @@ for macp in macp_reader:
             prev_maca = macp[0]
 
     for mact in mact_reader:
-        if macp[0] == mact[0]:
+        if macp[0] == mact[0] and not macp_ip == mact[2]:
             pcnt = 0
             for pacp in mact_reader:
                 if mact[2] == pacp[2] and mact[1] == pacp[1]:
