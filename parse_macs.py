@@ -22,6 +22,7 @@ macp_filename = 'discovered_hosts_mac_ports.csv'
 macf_filename = macp_filename[:-14] + '_mac_found.csv'
 macu_filename = macp_filename[:-14] + '_mac_unknown.csv'
 maca_filename = macp_filename[:-14] + '_mac_all.csv'
+macd_filename = macp_filename[:-14] + '_dhcp.csv'
 deps_filename = macp_filename[:-14] + '_deps.conf'
 dups_filename = macp_filename[:-14] + '_deps_dups.conf'
 revs_filename = macp_filename[:-14] + '_deps_revs.conf'
@@ -108,6 +109,7 @@ revs_f = open(revs_filename, 'w')
 arps_f = open(arps_filename, 'w')
 arpu_f = open(arpu_filename, 'w')
 r_code, n_rows, maca_values = read_check_file(maca_filename)
+r_code, n_rows, macd_values = read_check_file(macd_filename)
 deps_list = ''
 foun_list = ''
 maca_list = ''
@@ -283,6 +285,12 @@ for mact in mact_reader:
         for macu in macu_list.split('\n'):
             if mact[0] == macu:
                 found = 1
+    if not found:
+        macs = mact[0].replace(':','').upper()
+        for macd in macd_values:
+            if macs == macd[1].upper():
+                found = 1
+                break
     if not found:
         macu_list += mact[0] +'\n'
         print('Unknown MAC: '+mact[0])
