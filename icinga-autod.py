@@ -1196,6 +1196,7 @@ def compile_hvars(sysdesc, devdesc):
         'Lexmark T6': 'vars.network_printer = "true"',
         'Network Printer': 'vars.network_printer = "true"',
         'Printing System': 'vars.network_printer = "true"',
+        'Xerox WorkCentre': 'vars.network_printer = "true"',
         'Linux':'vars.os = "Linux"',
         'Windows':'vars.os = "Windows"',
         'APC Web/SNMP': 'vars.ups_apc = "true"',
