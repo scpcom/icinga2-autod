@@ -374,6 +374,7 @@ def compile_hosts(data, location):
         '49152/wps_device.xml',
         '49152/rootdesc1.xml',
         '5200/Printer.xml',
+        '8008/ssdp/device-desc.xml',
     ]
 
     set_upnp_ns(0)
