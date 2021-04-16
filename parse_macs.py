@@ -264,6 +264,11 @@ for lldt in lldt_reader:
             found = 1
             break
     if not found:
+        for maca in maca_values:
+            if lldt[0] == maca[0]:
+                found = 1
+                break
+    if not found:
         print('Unknown LLD: '+lldt[0])
         macu_f.write(lldt[0] + ';' + 'lld' + ';' + get_mac_vendor(lldt[0]) +'\n')
 macu_list = ''
