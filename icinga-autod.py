@@ -7,6 +7,7 @@ import os
 import sys
 import subprocess
 import json
+import string
 
 try:
     import argparse
@@ -280,6 +281,40 @@ def get_count(hosts):
         sys.exit(0)
     else:
         return count
+
+def get_hex_digits(portid):
+    hexd = ''
+    sepd = ''
+    sepi = 0
+    i = 0
+    for c in portid:
+        i += 1
+        if c in ' -:':
+            if len(hexd) == 0:
+                sepi = i
+                continue
+            if sepd == '':
+                sepd = c
+        if sepd == c:
+            if not (i - sepi) % 2:
+                hexd = ''
+                break
+            sepi = i
+            continue
+        elif c not in string.hexdigits:
+            break
+        hexd += c.upper()
+        if len(hexd) % 3 == 2:
+            hexd += ':'
+    if hexd.endswith(':'):
+        hexd = hexd[:-1]
+    return hexd
+
+def get_mac_digits(portid):
+    macd = get_hex_digits(portid)
+    if len(macd) == 17:
+        return macd
+    return ''
 
 def get_mac_vendor(mac):
     mac_vendor = None
@@ -862,11 +897,15 @@ def compile_hosts(data, location):
                         ifno = '0'+ifno
                     if int(ifnr) < 10:
                         ifnr = '0'+ifnr
-                    maca = ': '.join(line.split(': ')[1:]).strip('"').replace(' ', ':').replace('-', ':').upper()
-                    if maca[-1:] == ':':
-                        maca = maca[:-1]
-                    if len(maca) == 12 and not ':' in maca:
-                        maca = maca[:2] + ':' + maca[2:4] + ':' + maca[4:6] + ':' + maca[6:8] + ':' + maca[8:10] + ':' + maca[10:12]
+                    maca = ': '.join(line.split(': ')[1:]).strip('"')
+                    maci = get_mac_digits(maca)
+                    if maci == '':
+                        maci = get_mac_digits(ifrpid)
+                    if maci == '':
+                        maci = get_hex_digits(maca)
+                    if len(maci) > 10:
+                        maca = maci
+
                     #print(ifno+';'+ifnr+';'+maca)
                     have_lldt = 1
                     lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde +'\n')
