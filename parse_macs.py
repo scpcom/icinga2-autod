@@ -273,8 +273,17 @@ for lldt in lldt_reader:
                 found = 1
                 break
     if not found:
-        print('Unknown LLD: '+lldt[0])
-        macu_f.write(lldt[0] + ';' + 'lld' + ';' + get_mac_vendor(lldt[0]) +'\n')
+        portve = get_mac_vendor(lldt[0])
+        portid = ''
+        if len(lldt) > 5:
+            portid = lldt[5]
+        if len(portid) == 17 and portve == '':
+            portve = get_mac_vendor(portid)
+        portde = list()
+        if len(lldt) > 6:
+            portde = lldt[6:]
+        print('Unknown LLD: '+lldt[0]+' '+portid+' '+' '.join(portde))
+        macu_f.write(lldt[0] + ';' + 'lld' + ';' + portve + ';' + portid + ';' + ';'.join(portde) +'\n')
 macu_list = ''
 for mact in mact_reader:
     found = 0
