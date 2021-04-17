@@ -160,6 +160,8 @@ for macp in macp_reader:
             local_service = 'snmp-int-port'+local_port
             if local_port == 'arp':
                 local_service = 'ping4'
+            elif local_port == 'chassis':
+                local_service = 'ping4'
             elif local_port != '':
                 local_service = 'snmp-int-port'+str(int(local_port))
             parent_service = 'snmp-int-port'+str(int(port_data[1]))
@@ -181,7 +183,9 @@ for macp in macp_reader:
                         port_dupl = 1
                 elif len(deps) > 3 and deps[0] == port_hostname and deps[2] == macp_hostname:
                     deps_dupl = 1
-            if deps_reve and not deps_skip:
+            if local_port == '' and not deps_skip:
+                print('WARNING: local port not found for:')
+            elif deps_reve and not deps_skip:
                 print('WARNING: reverse dependency found for:')
             elif port_dupl and not deps_skip:
                 print('WARNING: duplicate port dependency found for:')
@@ -191,9 +195,9 @@ for macp in macp_reader:
             if not deps_skip:
                 print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')')
                 macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
-
-            if port_share == 0 and not deps_skip:
                 deps_list += macp_hostname+';'+local_port+';'+port_hostname+';'+port_data[1]+'\n'
+
+            if port_share == 0 and local_port != '' and not deps_skip:
                 host_deps = build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, deps_reve)
                 if deps_reve:
                     revs_f.write(host_deps)
