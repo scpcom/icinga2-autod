@@ -856,6 +856,7 @@ def compile_hosts(data, location):
                 rpde_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.8')
                 rsid_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.9')
                 rsde_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.1.1.10')
+                rsma_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.0.8802.1.1.2.1.4.2.1')
 
             for line in output:
                 if '.0.8802.1.1.2.1.4.1.1.5.' in line:
@@ -887,6 +888,19 @@ def compile_hosts(data, location):
                         if '.0.8802.1.1.2.1.4.1.1.10.'+ifid+' ' in rsde:
                             ifrsde = ': '.join(rsde.split(': ')[1:]).strip('"')
                             break
+                    ifrsma = ''
+                    for rsma in rsma_output:
+                        if '.0.8802.1.1.2.1.4.2.1.1.'+ifid+'.' in rsma or \
+                           '.0.8802.1.1.2.1.4.2.1.2.'+ifid+'.' in rsma or \
+                           '.0.8802.1.1.2.1.4.2.1.3.'+ifid+'.' in rsma or \
+                           '.0.8802.1.1.2.1.4.2.1.4.'+ifid+'.' in rsma or \
+                           '.0.8802.1.1.2.1.4.2.1.5.'+ifid+'.' in rsma:
+                            rsmt = '.'.join(rsma.split('.')[14:16])
+                            if rsmt == '1.4':
+                                ifrsma = '.'.join(rsma.split('.')[16:]).split(' = ')[0]
+                                break
+                            else:
+                                print('Unknown lldpRemManAddrSubtype: '+rsmt+';'+ifrsma)
                     if fix_lldtno:
                         if ifno >= iffirst:
                             ifno = ifno+1-iffirst
@@ -908,7 +922,7 @@ def compile_hosts(data, location):
 
                     #print(ifno+';'+ifnr+';'+maca)
                     have_lldt = 1
-                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde +'\n')
+                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde + ';' + ifrsma +'\n')
 
         output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.4.3.1.1')
         if len(output) > 0:
