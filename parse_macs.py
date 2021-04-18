@@ -139,6 +139,8 @@ for macp in macp_reader:
         maca_list += macp[0] + ';' + macp_ip + ';' + macp_hostname + '\n';
 
     for lldt in lldt_reader:
+        if len(lldt) < 2:
+            continue
         if macp[0] == lldt[0]:
             pcnt = 0
             port_share = pcnt
@@ -151,7 +153,9 @@ for macp in macp_reader:
 
             local_port = ''
             for pldt in lldt_reader:
-                if pldt[3] == macp_ip:
+                if len(pldt) < 4:
+                    continue
+                elif pldt[3] == macp_ip:
                     for pacp in macp_reader:
                         if pacp[0] == pldt[0] and pacp[2] == port_ip:
                             local_port = pldt[1]
@@ -262,6 +266,8 @@ revs_f.close()
 arps_f.close()
 arpu_f.close()
 for lldt in lldt_reader:
+    if len(lldt) < 2:
+        continue
     found = 0
     for macp in macp_reader:
         if lldt[0] == macp[0]:
