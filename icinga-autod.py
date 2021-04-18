@@ -930,6 +930,15 @@ def compile_hosts(data, location):
                             if rsmt == '1.4':
                                 ifrsma = '.'.join(rsma.split('.')[16:]).split(' = ')[0]
                                 break
+                            elif rsmt == '2.16':
+                                ifrsma = ''
+                                for o in rsma.split(' = ')[0].split('.')[16:]:
+                                    ifrsma += '%.2x' % int(o)
+                                    if len(ifrsma) % 5 == 4:
+                                        ifrsma += ':'
+                                if ifrsma.endswith(':'):
+                                    ifrsma = ifrsma[:-1]
+                                #break
                             else:
                                 print('Unknown lldpRemManAddrSubtype: '+rsmt+';'+ifrsma)
                     if fix_lldtno:
