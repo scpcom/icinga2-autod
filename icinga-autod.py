@@ -886,7 +886,7 @@ def compile_hosts(data, location):
                     ifrsde = ''
                     for rsde in rsde_output:
                         if '.0.8802.1.1.2.1.4.1.1.10.'+ifid+' ' in rsde:
-                            ifrsde = ': '.join(rsde.split(': ')[1:]).strip('"')
+                            ifrsde = ': '.join(rsde.split(': ')[1:]).strip('"').strip('\r')
                             break
                     ifrsma = ''
                     for rsma in rsma_output:
