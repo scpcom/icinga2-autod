@@ -282,6 +282,37 @@ def get_count(hosts):
     else:
         return count
 
+def get_hex_string(data, list):
+    roid = '.'.join(data.split('.')[:6])
+    rstr = ''
+    for l in list:
+        s = l.strip('"').strip('\r')
+        if s == '':
+            continue
+        if l == data:
+            rstr += s
+        elif l.startswith(roid) and rstr != '':
+            break
+        elif rstr != '':
+            rstr += ' '
+            rstr += s
+    rstr = ': '.join(rstr.split(': ')[1:]).strip('"').strip('\r')
+    if ' = Hex-STRING: ' in data:
+        nstr = ''
+        for h in rstr.split(' '):
+            if len(h) == 2:
+                h = int(h,16)
+                # Todo: Get Mgmt IP after first zero
+                # 04 00 04 01 04 AC 10 C0 04 = IP 172.16.192.4
+                if h == 0:
+                    break
+                if chr(h) == '\n':
+                    nstr += ' '
+                else:
+                    nstr += chr(h)
+        rstr = nstr.strip('\r')
+    return rstr
+
 def get_hex_digits(portid):
     hexd = ''
     sepd = ''
@@ -886,7 +917,7 @@ def compile_hosts(data, location):
                     ifrsde = ''
                     for rsde in rsde_output:
                         if '.0.8802.1.1.2.1.4.1.1.10.'+ifid+' ' in rsde:
-                            ifrsde = ': '.join(rsde.split(': ')[1:]).strip('"').strip('\r')
+                            ifrsde = get_hex_string(rsde, rsde_output)
                             break
                     ifrsma = ''
                     for rsma in rsma_output:
