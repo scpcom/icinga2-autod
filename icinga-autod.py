@@ -371,11 +371,13 @@ def port_str(no):
         return '2:'+str(no-50)
     return str(no)
 
-def get_vlan_desc(vlegre, vlunta):
+def get_vlan_desc(vlegre, vlunta, vlforb):
     es = vlegre.split(' ')
     us = vlunta.split(' ')
+    fs = vlforb.split(' ')
     ed = 'T'
     ud = 'U'
+    fd = 'E'
     if len(es) == len(us):
         ix = 0
         px = 1
@@ -383,12 +385,19 @@ def get_vlan_desc(vlegre, vlunta):
         prev_t = 255
         for e in es:
           u = us[ix]
+          x = fs[ix]
+          #print(x)
+          #print(len(x))
           if len(u) == 2:
             e = int(e, 16)
             u = int(u, 16)
+            x = int(x, 16)
             for bit in reversed(range(8)):
                 t = 0
-                if u & (1 << bit):
+                if x & (1 << bit):
+                    t = 3
+                    #fd += str(px)+',
+                elif u & (1 << bit):
                     t = 2
                     #ud += str(px)+','
                 elif e & (1 << bit):
@@ -399,7 +408,9 @@ def get_vlan_desc(vlegre, vlunta):
                         s = port_str(f)+'-'+port_str(px-1)+','
                     else:
                         s = port_str(f)+','
-                    if prev_t == 2:
+                    if prev_t == 3:
+                        fd += s
+                    elif prev_t == 2:
                         ud += s
                     elif prev_t == 1:
                         ed += s
@@ -411,13 +422,16 @@ def get_vlan_desc(vlegre, vlunta):
             s = port_str(f)+'-'+port_str(px-1)+','
         else:
             s = port_str(f)+','
-        if prev_t == 2:
+        if prev_t == 3:
+            fd += s
+        elif prev_t == 2:
             ud += s
         elif prev_t == 1:
             ed += s
     ed = ed[:-1]
     ud = ud[:-1]
-    return ed, ud
+    fd = fd[:-1]
+    return ed, ud, fd
 
 def compile_hosts(data, location):
     global is_dgs3100s2
@@ -991,7 +1005,7 @@ def compile_hosts(data, location):
                         if '.3.6.1.2.1.17.7.1.4.3.1.4.'+vlnr+' ' in unta:
                             vlunta = ': '.join(unta.split(': ')[1:]).strip('"')
                             break
-                    ed, ud = get_vlan_desc(vlegre, vlunta)
+                    ed, ud, fd = get_vlan_desc(vlegre, vlunta, vlforb)
                     #print(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+vlunta)
                     vlan_f.write(vlnr+';'+vlna+';'+vlegre+';'+vlforb+';'+ vlunta+';' + str(ip) + ';' + hdata['hostname']+';'+ed+';'+ud +'\n')
 
