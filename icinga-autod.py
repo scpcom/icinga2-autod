@@ -385,7 +385,9 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
         prev_t = 255
         for e in es:
           u = us[ix]
-          x = fs[ix]
+          x = '00'
+          if ix < len(fs) and len(fs[ix]) == 2:
+              x = fs[ix]
           #print(x)
           #print(len(x))
           if len(u) == 2:
