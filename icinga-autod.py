@@ -458,6 +458,7 @@ def compile_hosts(data, location):
         '5200/Printer.xml',
         '8008/ssdp/device-desc.xml',
         '9197/dmr',
+        '1401/',
     ]
 
     set_upnp_ns(0)
