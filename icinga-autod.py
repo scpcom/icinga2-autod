@@ -1316,6 +1316,7 @@ def compile_hvars(sysdesc, devdesc):
         'Brother HL': 'vars.network_printer = "true"',
         'Brother MFC': 'vars.network_printer = "true"',
         'bizhub': 'vars.network_printer = "true"',
+        'Canon LBP': 'vars.network_printer = "true"',
         'Laserjet': 'vars.network_printer = "true"',
         'LaserJet': 'vars.network_printer = "true"',
         'Officejet': 'vars.network_printer = "true"',
