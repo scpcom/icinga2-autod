@@ -599,6 +599,7 @@ def compile_hosts(data, location):
         ifcount = 0
         ifentries = 0
         is_comware = "false"
+        is_s1700 = "false"
         is_sg300 = "false"
         is_hp1810v2 = "false"
         is_des1210 = "false"
@@ -699,6 +700,8 @@ def compile_hosts(data, location):
                         #print(str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal)
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
+                    if ifna.startswith('1/') and ifde.startswith('Huawei S'):
+                        is_s1700 = "true"
                     if ifna.startswith('gi') and ifde.startswith('gigabitethernet'):
                         is_sg300 = "true"
                     if ifna.startswith('Port  '):
@@ -1075,6 +1078,8 @@ def compile_hosts(data, location):
         #print(str(ifcount) + ' interfaces')
         if is_comware == "true":
             hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
+        if is_s1700 == "true":
+            hostvars += 'vars.network_s1700 = "' + is_s1700 + '"' +'\n  '
         if is_sg300 == "true":
             hostvars += 'vars.network_sg300 = "' + is_sg300 + '"' +'\n  '
         if is_hp1810v2 == "true":
@@ -1158,6 +1163,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     linevars = hostvars.split('\n')
     is_comware = "false"
+    is_s1700 = "false"
     is_sg300 = "false"
     is_hp1810v2 = "false"
     is_des1210 = "false"
@@ -1170,6 +1176,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     for line in linevars:
         if 'vars.network_comware = ' in line:
             is_comware = line.split(' = ')[1].strip('"')
+        if 'vars.network_s1700 = ' in line:
+            is_s1700 = line.split(' = ')[1].strip('"')
         if 'vars.network_sg300 = ' in line:
             is_sg300 = line.split(' = ')[1].strip('"')
         if 'vars.network_hp1810v2 = ' in line:
@@ -1188,12 +1196,14 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             is_switch = line.split(' = ')[1].strip('"')
         if 'vars.network_ports = ' in line:
             ifcount = line.split(' = ')[1]
-    if (is_comware == "true" or is_hp1810v2 == "true") and is_switch != "true":
+    if (is_comware == "true" or is_s1700 == "true" or is_hp1810v2 == "true") and is_switch != "true":
         is_switch = "true"
         hostvars += 'vars.network_switch = "' + is_switch + '"' +'\n  '
     if is_switch == "true" and int(ifcount) > 7:
         if is_comware == "true":
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_s1700 == "true":
+            host_entry += '  import "s1700-int-{0}-ports-template"\n'.format(ifcount)
         elif is_sg300 == "true":
             host_entry += '  import "sg300-int-{0}-ports-template"\n'.format(ifcount)
         elif is_hp1810v2 == "true":
