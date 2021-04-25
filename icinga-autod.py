@@ -435,6 +435,60 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
     fd = fd[:-1]
     return ed, ud, fd
 
+def skip_port(ifde, ifty, ifna, ifal):
+    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt']
+    desc_filter = ['IP Interface']
+    alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
+    # IANAifType-MIB
+    #   1 other
+    #  22 propPointToPointSerial
+    #  23 ppp
+    #  24 softwareLoopback
+    #  53 propVirtual
+    #  71 ieee80211
+    # 131 tunnel
+    # 135 l2vlan
+    # 142 ipForward
+    # 161 ieee8023adLag
+    # 188 radioMAC
+    # 244 wwanPP2
+    # 246 ilan
+    # 247 pip
+    type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 161, 188, 244, 246, 247]
+
+    ifskip = 0
+    for prefix in desc_filter:
+        if ifde.startswith(prefix):
+            ifskip = 1
+            break
+    for prefix in port_filter:
+        if ifna.startswith(prefix):
+            ifskip = 1
+            break
+    for filali in alias_filter:
+        if filali in ifal:
+            ifskip = 1
+            break
+    for filtyp in type_filter:
+        if ifty == filtyp:
+            ifskip = 1
+            break
+    if ifna.startswith('ch') and len(ifna) < 5:
+        ifskip = 1
+    if ifna.startswith('po') and len(ifna) < 5:
+        ifskip = 1
+    if ifna.startswith('tap') or  ifna.startswith('vif'):
+        iftmp = ifna[3:].split('.')
+        elskip = 1
+        for ifelement in iftmp:
+            if len(ifelement) > 4:
+                elskip = 0
+        if len(iftmp) > 2:
+            elskip = 0
+        if elskip:
+            ifskip = 1
+    return ifskip
+
 def compile_hosts(data, location):
     global is_dgs3100s2
 
@@ -608,25 +662,6 @@ def compile_hosts(data, location):
         is_dgs3100s2 = "false"
         is_dgs3100s3 = "false"
         snmp_interface_ifalias = "false"
-        port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt']
-        desc_filter = ['IP Interface']
-        alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
-        # IANAifType-MIB
-        #   1 other
-        #  22 propPointToPointSerial
-        #  23 ppp
-        #  24 softwareLoopback
-        #  53 propVirtual
-        #  71 ieee80211
-        # 131 tunnel
-        # 135 l2vlan
-        # 142 ipForward
-        # 161 ieee8023adLag
-        # 188 radioMAC
-        # 244 wwanPP2
-        # 246 ilan
-        # 247 pip
-        type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 161, 188, 244, 246, 247]
 
         desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
         type_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.3')
@@ -660,37 +695,7 @@ def compile_hosts(data, location):
                             ifty = int(': '.join(type.split(': ')[1:]).strip('"'))
                     #print(str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal)
 
-                    ifskip = 0
-                    for prefix in desc_filter:
-                        if ifde.startswith(prefix):
-                            ifskip = 1
-                            break
-                    for prefix in port_filter:
-                        if ifna.startswith(prefix):
-                            ifskip = 1
-                            break
-                    for filali in alias_filter:
-                        if filali in ifal:
-                            ifskip = 1
-                            break
-                    for filtyp in type_filter:
-                        if ifty == filtyp:
-                            ifskip = 1
-                            break
-                    if ifna.startswith('ch') and len(ifna) < 5:
-                        ifskip = 1
-                    if ifna.startswith('po') and len(ifna) < 5:
-                        ifskip = 1
-                    if ifna.startswith('tap') or  ifna.startswith('vif'):
-                        iftmp = ifna[3:].split('.')
-                        elskip = 1
-                        for ifelement in iftmp:
-                            if len(ifelement) > 4:
-                                elskip = 0
-                        if len(iftmp) > 2:
-                            elskip = 0
-                        if elskip:
-                            ifskip = 1
+                    ifskip = skip_port(ifde, ifty, ifna, ifal)
 
                     if ifskip == 0 and ifno < iffirst:
                         iffirst = ifno
@@ -794,32 +799,7 @@ def compile_hosts(data, location):
                             oper = '.'.join(oper.split('.')[10:])
                             ifop = int(': '.join(oper.split(': ')[1:]).strip('"'))
 
-                    ifskip = 0
-                    for prefix in port_filter:
-                        if ifna.startswith(prefix):
-                            ifskip = 1
-                            break
-                    for filali in alias_filter:
-                        if filali in ifal:
-                            ifskip = 1
-                            break
-                    for filtyp in type_filter:
-                        if ifty == filtyp:
-                            ifskip = 1
-                            break
-                    if ifna.startswith('ch') and len(ifna) < 5:
-                        ifskip = 1
-                    if ifna.startswith('tap') or  ifna.startswith('vif'):
-                        iftmp = ifna[3:].split('.')
-                        elskip = 1
-                        for ifelement in iftmp:
-                            if len(ifelement) > 4:
-                                elskip = 0
-                        if len(iftmp) > 2:
-                            elskip = 0
-                        if elskip:
-                            #print(ifna)
-                            ifskip = 1
+                    ifskip = skip_port(ifde, ifty, ifna, ifal)
 
                     if fix_portno:
                         if ifno >= iffirst:
