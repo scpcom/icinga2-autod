@@ -927,12 +927,12 @@ def compile_hosts(data, location):
                     ifrpde = ''
                     for rpde in rpde_output:
                         if '.0.8802.1.1.2.1.4.1.1.8.'+ifid+' ' in rpde:
-                            ifrpde = ': '.join(rpde.split(': ')[1:]).strip('"')
+                            ifrpde = get_hex_string(rpde, rpde_output)
                             break
                     ifrsid = ''
                     for rsid in rsid_output:
                         if '.0.8802.1.1.2.1.4.1.1.9.'+ifid+' ' in rsid:
-                            ifrsid = ': '.join(rsid.split(': ')[1:]).strip('"')
+                            ifrsid = get_hex_string(rsid, rsid_output)
                             break
                     ifrsde = ''
                     for rsde in rsde_output:
