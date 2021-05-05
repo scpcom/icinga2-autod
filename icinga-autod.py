@@ -152,7 +152,18 @@ def main():
         if ';' in host:
             host, hostmac = host.split(';')
 
-        data = snmpget_by_cl(host, credential, oids)
+        syssnmp = 0
+        ret, output, err = exec_command('nmap -sU -p161 {0}'.format(host))
+        if ret and err:
+            syssnmp = 0
+        else:
+            syssnmp = parse_nmap_port_scan(output, '161/udp ')
+
+        snmp_timeout = 1
+        if syssnmp == 1:
+            snmp_timeout = 2
+
+        data = snmpget_by_cl(host, credential, oids, snmp_timeout)
 
         '''TODO: clean up this logic...'''
         try:
@@ -173,6 +184,13 @@ def main():
             syslocation = ''
             sysdesc = ''
             sysobject = ''
+
+        have_snmp = 0
+        if community != '' and  community != 'unknown':
+            have_snmp = 1
+
+        if have_snmp == 0 and syssnmp == 1:
+            print(host + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.')
 
         v_match = vendor_match(numbers, sysobject)
 
@@ -630,17 +648,6 @@ def compile_hosts(data, location):
 
             if sysupnp == 1:
                 print(str(ip) + ' ' + hostname + ' WARNING: UPnP port is open but unable to get data.')
-
-        if have_snmp == 0:
-            syssnmp = 0
-            ret, output, err = exec_command('nmap -sU -p161 {0}'.format(ip))
-            if ret and err:
-                syssnmp = 0
-            else:
-                syssnmp = parse_nmap_port_scan(output, '161/udp ')
-
-            if syssnmp == 1:
-                print(str(ip) + ' ' + hostname + ' WARNING: SNMP port is open but unable to get data.')
 
         # .3.6.1.2.1.2.2.1.2     ifDescr
         # .3.6.1.2.1.2.2.1.3     ifType
