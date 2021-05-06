@@ -24,13 +24,13 @@ if  desc_url != '':
         device = upnp_process_description(desc_url)
     if device is not None:
         upnp_print_schema(device)
-        if device.manufacturer:
+        if hasattr(device, 'manufacturer') and device.manufacturer:
             print('Vendor: '+device.manufacturer)
-        if device.model_name:
+        if hasattr(device, 'model_name') and device.model_name:
             print('Model: '+device.model_name)
-        if device.model_description:
+        if hasattr(device, 'model_description') and device.model_description:
             print('Description: '+device.model_description)
-        if device.model_number:
+        if hasattr(device, 'model_number') and device.model_number:
             print('Number: '+device.model_number)
         service = upnp_get_service(device, 'WANCommonInterfaceConfig:1')
         if service is not None:
