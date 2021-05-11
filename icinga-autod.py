@@ -1159,11 +1159,34 @@ def compile_hosts(data, location):
     return filename
 
 def build_host_entry(hostname, ip, location, vendor, hostvars):
+    icingaweb2_public = '/usr/share/icingaweb2/public'
+    icon_filenames = (
+        'custom/%s.png',
+        'custom/%s.ico',
+        'custom/%s.gif',
+        'img/icons/%s.png',
+        'img/icons/%s.ico',
+        'img/icons/%s.gif',
+    )
+    icon_descriptors = {
+        'HP 1810': 'hp',
+        'OfficeConnect': 'hpe',
+        'ProCurve': 'hp',
+        'PROCURVE': 'hp',
+        'FRITZ!': 'fritz',
+        'iLO 4': 'ilo-4',
+        'SEH myUTN': 'seh-technology',
+        'pfSense': 'pfsense',
+        'FreeBSD': 'freebsd',
+        'Linux': 'tux',
+        'Windows': 'win',
+    }
     host_entry = ( 'object Host "%s" {\n'
                    '  import "generic-host"\n'
                  ) % (hostname)
 
     linevars = hostvars.split('\n')
+    sysdesc = ""
     is_comware = "false"
     is_s1700 = "false"
     is_sg300 = "false"
@@ -1176,6 +1199,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     is_switch = "false"
     ifcount = 0
     for line in linevars:
+        if 'vars.description = ' in line:
+            sysdesc = line.split(' = ')[1].strip('"')
         if 'vars.network_comware = ' in line:
             is_comware = line.split(' = ')[1].strip('"')
         if 'vars.network_s1700 = ' in line:
@@ -1222,6 +1247,25 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             host_entry += '  import "int-{0}-ports-template"\n'.format(ifcount)
 
     host_entry += '  address = "{0}"\n'.format(ip)
+
+    icon_image = ""
+    '''Get icon based on sysDescr matches'''
+    try:
+        icon_descriptors_items = icon_descriptors.iteritems()
+    except AttributeError:
+        icon_descriptors_items = icon_descriptors.items()
+    for match, var in icon_descriptors_items:
+        if match in sysdesc:
+            for icon_template in icon_filenames:
+                icon_filename = icon_template % (var)
+                if os.path.exists(icingaweb2_public+'/'+icon_filename):
+                    icon_image = icon_filename
+                    break
+            if icon_image != "":
+                break
+
+    if icon_image != "":
+        host_entry += '  icon_image = "{0}"\n'.format(icon_image)
     if location:
         host_entry += '  vars.location = "{0}"\n'.format(location)
     if vendor:
