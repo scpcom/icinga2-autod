@@ -507,6 +507,13 @@ def skip_port(ifde, ifty, ifna, ifal):
             ifskip = 1
     return ifskip
 
+def createFolder(directory):
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError:
+        print ('Error: Creating directory. ' +  directory)
+
 def compile_hosts(data, location):
     global is_dgs3100s2
 
@@ -541,12 +548,14 @@ def compile_hosts(data, location):
     else:
         filename = 'discovered_hosts.conf'
 
+    filedir = filename.replace('.conf', '.d')
     macp_filename = filename.replace('.conf', '_mac_ports.csv')
     mact_filename = filename.replace('.conf', '_mac_table.csv')
     lldt_filename = filename.replace('.conf', '_mac_lldp.csv')
     vlan_filename = filename.replace('.conf', '_vlans.csv')
 
     f = open(filename, 'w')
+    createFolder(filedir)
     macp_f = open(macp_filename, 'w')
     mact_f = open(mact_filename, 'w')
     lldt_f = open(lldt_filename, 'w')
@@ -1133,7 +1142,13 @@ def compile_hosts(data, location):
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
         host_entry = build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
 
-        f.write(host_entry)
+        if hdata['hostmac'] != '':
+            host_filename = filedir + '/' + 'h-' + hdata['hostmac'].replace(':', '') + '.conf'
+            host_f = open(host_filename, 'w')
+            host_f.write(host_entry)
+            host_f.close()
+        else:
+            f.write(host_entry)
 
     f.close()
     macp_f.close()
