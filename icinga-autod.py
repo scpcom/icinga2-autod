@@ -1181,6 +1181,10 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         'Linux': 'tux',
         'Windows': 'win',
     }
+    icon_vendors = {
+        'ciscoSystems': 'cisco',
+        'Cisco Systems': 'cisco',
+    }
     host_entry = ( 'object Host "%s" {\n'
                    '  import "generic-host"\n'
                  ) % (hostname)
@@ -1249,6 +1253,21 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     host_entry += '  address = "{0}"\n'.format(ip)
 
     icon_image = ""
+    '''Get icon based on vendor matches'''
+    if vendor:
+      try:
+        icon_vendors_items = icon_vendors.iteritems()
+      except AttributeError:
+        icon_vendors_items = icon_vendors.items()
+      for match, var in icon_vendors_items:
+        if match in vendor:
+            for icon_template in icon_filenames:
+                icon_filename = icon_template % (var)
+                if os.path.exists(icingaweb2_public+'/'+icon_filename):
+                    icon_image = icon_filename
+                    break
+            if icon_image != "":
+                break
     '''Get icon based on sysDescr matches'''
     try:
         icon_descriptors_items = icon_descriptors.iteritems()
