@@ -399,7 +399,7 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
     if len(es) == len(us):
         ix = 0
         px = 1
-        f = px
+        fx = px
         prev_t = 255
         for e in es:
           u = us[ix]
@@ -424,24 +424,24 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
                     t = 1
                     #ed += str(px)+','
                 if prev_t != t:
-                    if px-1 > f:
-                        s = port_str(f)+'-'+port_str(px-1)+','
+                    if px-1 > fx:
+                        s = port_str(fx)+'-'+port_str(px-1)+','
                     else:
-                        s = port_str(f)+','
+                        s = port_str(fx)+','
                     if prev_t == 3:
                         fd += s
                     elif prev_t == 2:
                         ud += s
                     elif prev_t == 1:
                         ed += s
-                    f = px
+                    fx = px
                     prev_t = t
                 px+=1
           ix += 1
-        if px-1 > f:
-            s = port_str(f)+'-'+port_str(px-1)+','
+        if px-1 > fx:
+            s = port_str(fx)+'-'+port_str(px-1)+','
         else:
-            s = port_str(f)+','
+            s = port_str(fx)+','
         if prev_t == 3:
             fd += s
         elif prev_t == 2:
