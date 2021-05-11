@@ -1174,6 +1174,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         'ProCurve': 'hp',
         'PROCURVE': 'hp',
         'FRITZ!': 'fritz',
+        'iDRAC9': 'idrac-9',
         'iLO 4': 'ilo-4',
         'SEH myUTN': 'seh-technology',
         'pfSense': 'pfsense',
@@ -1184,6 +1185,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     icon_vendors = {
         'ciscoSystems': 'cisco',
         'Cisco Systems': 'cisco',
+        'Dell Inc': 'dell',
     }
     host_entry = ( 'object Host "%s" {\n'
                    '  import "generic-host"\n'
