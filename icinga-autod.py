@@ -1377,6 +1377,7 @@ def compile_hvars(sysdesc, devdesc):
         'Ethernet Switch': 'vars.network_switch = "true"',
         'Gigabit Switch': 'vars.network_switch = "true"',
         'WebSmart Switch': 'vars.network_switch = "true"',
+        'EdgeSwitch': 'vars.network_switch = "true"',
         'Canon iR': 'vars.network_printer = "true"',
         'Develop ineo': 'vars.network_printer = "true"',
         'JETDIRECT': 'vars.network_printer = "true"',
