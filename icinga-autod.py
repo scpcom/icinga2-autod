@@ -1173,6 +1173,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         'OfficeConnect': 'hpe',
         'ProCurve': 'hp',
         'PROCURVE': 'hp',
+        'Juniper Networks': 'juniper-ex',
+        'EdgeSwitch': 'ubiquiti-em',
         'FRITZ!': 'fritz',
         'iDRAC9': 'idrac-9',
         'Integrated Dell Remote Access Controller 9': 'idrac-9',
@@ -1187,6 +1189,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         'Windows': 'win',
     }
     icon_vendors = {
+        '3Com': '3com',
         'ciscoSystems': 'cisco',
         'Cisco Systems': 'cisco',
         'Dell Inc': 'dell',
