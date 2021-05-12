@@ -1178,6 +1178,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         'Integrated Dell Remote Access Controller 9': 'idrac-9',
         'iLO 4': 'ilo-4',
         'Integrated Lights-Out 4': 'ilo-4',
+        'iLO 5': 'ilo-4',
+        'Integrated Lights-Out 5': 'ilo-4',
         'SEH myUTN': 'seh-technology',
         'pfSense': 'pfsense',
         'FreeBSD': 'freebsd',
