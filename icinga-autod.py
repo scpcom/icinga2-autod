@@ -780,14 +780,14 @@ def compile_hosts(data, location):
 
         if hdata['hostmac'] != '':
             #print(str(ip) + ' ' + hdata['hostname'] + ' got Host MAC')
-            macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
+            macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] + ';' + 'arp' + ';' + ''  +'\n')
 
         portcount = 0
 
         if len(phys_output) > 0:
             print(str(ip) + ' ' + hdata['hostname'] + ' got Port IDs')
             if chassisid != '':
-                macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
+                macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] + ';' + 'chassis' + ';' + '' +'\n')
             for line in phys_output:
                 if '.3.6.1.2.1.2.2.1.6.' in line:
                     line = '.'.join(line.split('.')[10:])
@@ -844,9 +844,9 @@ def compile_hosts(data, location):
                             ifno = ifno+1+ifcount+1-iffirst
 
                     if maca and maca != '':
+                        if ifna == '':
+                            ifna = ifde
                         if ifentries < 9 and ifad == 1 and ifop == 1 and not ifskip:
-                            if ifna == '':
-                                ifna = ifde
                             hostvars += 'vars.snmp_interfaces["snmp-int-port'+str(ifno)+'"] = {' +'\n  '
                             hostvars += '  snmp_interface = "'+ifna+'"' +'\n  '
                             if ifal != '':
@@ -858,7 +858,7 @@ def compile_hosts(data, location):
                         if int(ifno) < 10:
                             ifno = '0'+ifno
                         portcount = portcount + 1
-                        macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] +'\n')
+                        macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] + ';' + ifna + ';' + ifal +'\n')
 
         have_mact = 0
         output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
