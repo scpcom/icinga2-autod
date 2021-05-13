@@ -454,7 +454,7 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
     return ed, ud, fd
 
 def skip_port(ifde, ifty, ifna, ifal):
-    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt']
+    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv']
     desc_filter = ['IP Interface']
     alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
     # IANAifType-MIB
@@ -467,12 +467,13 @@ def skip_port(ifde, ifty, ifna, ifal):
     # 131 tunnel
     # 135 l2vlan
     # 142 ipForward
+    # 150 mplsTunnel
     # 161 ieee8023adLag
     # 188 radioMAC
     # 244 wwanPP2
     # 246 ilan
     # 247 pip
-    type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 161, 188, 244, 246, 247]
+    type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 150, 161, 188, 244, 246, 247]
 
     ifskip = 0
     for prefix in desc_filter:
@@ -491,20 +492,38 @@ def skip_port(ifde, ifty, ifna, ifal):
         if ifty == filtyp:
             ifskip = 1
             break
+    iltmp = 0
     if ifna.startswith('ch') and len(ifna) < 5:
-        ifskip = 1
-    if ifna.startswith('po') and len(ifna) < 5:
-        ifskip = 1
-    if ifna.startswith('tap') or  ifna.startswith('vif'):
-        iftmp = ifna[3:].split('.')
+        iltmp = 2
+    elif ifna.startswith('me') and len(ifna) < 5:
+        iltmp = 2
+    elif ifna.startswith('po') and len(ifna) < 5:
+        iltmp = 2
+    elif ifna.startswith('tap') or ifna.startswith('vif'):
+        iltmp = 3
+    elif ifna.startswith('bme') or ifna.startswith('vme'):
+        iltmp = 3
+    elif ifna.startswith('bond') or ifna.startswith('lagg'):
+        iltmp = 4
+    elif ifna.startswith('vmbr') or ifna.startswith('veth'):
+        iltmp = 4
+    if iltmp > 0:
+        iftmp = ifna[iltmp:].split('.')
         elskip = 1
         for ifelement in iftmp:
             if len(ifelement) > 4:
-                elskip = 0
+                elnonum = 0
+                for c in ifelement:
+                    if c not in '0123456789':
+                        elnonum = elnonum + 1
+                if elnonum > 1:
+                    elskip = 0
         if len(iftmp) > 2:
             elskip = 0
         if elskip:
             ifskip = 1
+    if not ifskip:
+        print(ifna)
     return ifskip
 
 def createFolder(directory):
@@ -824,7 +843,7 @@ def compile_hosts(data, location):
                             ifno = ifno+1+ifcount+1-iffirst
 
                     if maca and maca != '':
-                        if ifentries < 8 and ifad == 1 and ifop == 1 and not ifskip:
+                        if ifentries < 9 and ifad == 1 and ifop == 1 and not ifskip:
                             if ifna == '':
                                 ifna = ifde
                             hostvars += 'vars.snmp_interfaces["snmp-int-port'+str(ifno)+'"] = {' +'\n  '
