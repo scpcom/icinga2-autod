@@ -689,6 +689,11 @@ def compile_hosts(data, location):
         is_esxg = "false"
         is_s1700 = "false"
         is_sg300 = "false"
+        is_jex = "false"
+        is_jexge0 = "false"
+        is_jexge1 = "false"
+        is_jexxe0 = "false"
+        is_jexxe1 = "false"
         is_hp1810v2 = "false"
         is_des1210 = "false"
         is_dgs3100 = "false"
@@ -745,6 +750,18 @@ def compile_hosts(data, location):
                         is_s1700 = "true"
                     if ifna.startswith('gi') and ifde.startswith('gigabitethernet'):
                         is_sg300 = "true"
+                    if ifna.startswith('ge-0/0/'):
+                        is_jex = "true"
+                        is_jexge0 = "true"
+                    if ifna.startswith('ge-1/0/'):
+                        is_jex = "true"
+                        is_jexge1 = "true"
+                    if ifna.startswith('xe-0/0/'):
+                        is_jex = "true"
+                        is_jexxe0 = "true"
+                    if ifna.startswith('xe-1/0/'):
+                        is_jex = "true"
+                        is_jexxe1 = "true"
                     if ifna.startswith('Port  '):
                         is_hp1810v2 = "true"
                     if ifna.startswith('Slot0/'):
@@ -1100,6 +1117,16 @@ def compile_hosts(data, location):
             hostvars += 'vars.network_s1700 = "' + is_s1700 + '"' +'\n  '
         if is_sg300 == "true":
             hostvars += 'vars.network_sg300 = "' + is_sg300 + '"' +'\n  '
+        if is_jex == "true":
+            hostvars += 'vars.network_jex = "' + is_jex + '"' +'\n  '
+        if is_jexge0 == "true":
+            hostvars += 'vars.network_jexge0 = "' + is_jexge0 + '"' +'\n  '
+        if is_jexge1 == "true":
+            hostvars += 'vars.network_jexge1 = "' + is_jexge1 + '"' +'\n  '
+        if is_jexxe0 == "true":
+            hostvars += 'vars.network_jexxe0 = "' + is_jexxe0 + '"' +'\n  '
+        if is_jexxe1 == "true":
+            hostvars += 'vars.network_jexxe1 = "' + is_jexxe1 + '"' +'\n  '
         if is_hp1810v2 == "true":
             hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
         if is_des1210 == "true":
@@ -1226,6 +1253,11 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     is_esxg = "false"
     is_s1700 = "false"
     is_sg300 = "false"
+    is_jex = "false"
+    is_jexge0 = "false"
+    is_jexge1 = "false"
+    is_jexxe0 = "false"
+    is_jexxe1 = "false"
     is_hp1810v2 = "false"
     is_des1210 = "false"
     is_dgs3100 = "false"
@@ -1245,6 +1277,16 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             is_s1700 = line.split(' = ')[1].strip('"')
         if 'vars.network_sg300 = ' in line:
             is_sg300 = line.split(' = ')[1].strip('"')
+        if 'vars.network_jex = ' in line:
+            is_jex = line.split(' = ')[1].strip('"')
+        if 'vars.network_jexge0 = ' in line:
+            is_jexge0 = line.split(' = ')[1].strip('"')
+        if 'vars.network_jexge1 = ' in line:
+            is_jexge1 = line.split(' = ')[1].strip('"')
+        if 'vars.network_jexxe0 = ' in line:
+            is_jexxe0 = line.split(' = ')[1].strip('"')
+        if 'vars.network_jexxe1 = ' in line:
+            is_jexxe1 = line.split(' = ')[1].strip('"')
         if 'vars.network_hp1810v2 = ' in line:
             is_hp1810v2 = line.split(' = ')[1].strip('"')
         if 'vars.network_des1210 = ' in line:
@@ -1273,6 +1315,14 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             host_entry += '  import "s1700-int-{0}-ports-template"\n'.format(ifcount)
         elif is_sg300 == "true":
             host_entry += '  import "sg300-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_jexxe0 == "true":
+            host_entry += '  import "jexxe0-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_jexxe1 == "true":
+            host_entry += '  import "jexxe1-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_jexge0 == "true":
+            host_entry += '  import "jexge0-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_jexge1 == "true":
+            host_entry += '  import "jexge1-int-{0}-ports-template"\n'.format(ifcount)
         elif is_hp1810v2 == "true":
             host_entry += '  import "hp1810v2-int-{0}-ports-template"\n'.format(ifcount)
         elif is_des1210 == "true":
