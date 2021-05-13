@@ -522,8 +522,6 @@ def skip_port(ifde, ifty, ifna, ifal):
             elskip = 0
         if elskip:
             ifskip = 1
-    if not ifskip:
-        print(ifna)
     return ifskip
 
 def createFolder(directory):
