@@ -1269,7 +1269,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     if is_switch == "true" and int(ifcount) > 7:
         if is_comware == "true":
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
-        if is_esxg == "true":
+        elif is_esxg == "true":
             host_entry += '  import "esxg-int-{0}-ports-template"\n'.format(ifcount)
         elif is_s1700 == "true":
             host_entry += '  import "s1700-int-{0}-ports-template"\n'.format(ifcount)
