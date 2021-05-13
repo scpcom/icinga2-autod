@@ -688,6 +688,7 @@ def compile_hosts(data, location):
         ifcount = 0
         ifentries = 0
         is_comware = "false"
+        is_esxg = "false"
         is_s1700 = "false"
         is_sg300 = "false"
         is_hp1810v2 = "false"
@@ -740,6 +741,8 @@ def compile_hosts(data, location):
                         #print(str(ifno)+';'+str(ifty)+';'+ifna+';'+ifde+';'+ifal)
                     if ifna.startswith('GigabitEthernet1/0/'):
                         is_comware = "true"
+                    if ifna.startswith('0/'):
+                        is_esxg = "true"
                     if ifna.startswith('1/') and ifde.startswith('Huawei S'):
                         is_s1700 = "true"
                     if ifna.startswith('gi') and ifde.startswith('gigabitethernet'):
@@ -1093,6 +1096,8 @@ def compile_hosts(data, location):
         #print(str(ifcount) + ' interfaces')
         if is_comware == "true":
             hostvars += 'vars.network_comware = "' + is_comware + '"' +'\n  '
+        if is_esxg == "true":
+            hostvars += 'vars.network_esxg = "' + is_esxg + '"' +'\n  '
         if is_s1700 == "true":
             hostvars += 'vars.network_s1700 = "' + is_s1700 + '"' +'\n  '
         if is_sg300 == "true":
@@ -1220,6 +1225,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     linevars = hostvars.split('\n')
     sysdesc = ""
     is_comware = "false"
+    is_esxg = "false"
     is_s1700 = "false"
     is_sg300 = "false"
     is_hp1810v2 = "false"
@@ -1235,6 +1241,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
             sysdesc = line.split(' = ')[1].strip('"')
         if 'vars.network_comware = ' in line:
             is_comware = line.split(' = ')[1].strip('"')
+        if 'vars.network_esxg = ' in line:
+            is_esxg = line.split(' = ')[1].strip('"')
         if 'vars.network_s1700 = ' in line:
             is_s1700 = line.split(' = ')[1].strip('"')
         if 'vars.network_sg300 = ' in line:
@@ -1261,6 +1269,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     if is_switch == "true" and int(ifcount) > 7:
         if is_comware == "true":
             host_entry += '  import "hpv1910-int-{0}-ports-template"\n'.format(ifcount)
+        if is_esxg == "true":
+            host_entry += '  import "esxg-int-{0}-ports-template"\n'.format(ifcount)
         elif is_s1700 == "true":
             host_entry += '  import "s1700-int-{0}-ports-template"\n'.format(ifcount)
         elif is_sg300 == "true":
