@@ -85,6 +85,41 @@ def write_check_file(check_filename, check_row):
         r_code = 0
     return r_code
 
+def get_service_port(if_name):
+    ret_port = ''
+    if if_name != '':
+        port_s_first = 1
+        port_c_first = 0
+        port_p_first = 1
+        if if_name.startswith('ge-') or if_name.startswith('xe-'):
+            ret_port = if_name[3:]
+            ret_port = ret_port.replace('.', '/')
+            port_s_first = 0
+            port_p_first = 0
+        elif if_name.startswith('GigabitEthernet') and '/' in if_name:
+            ret_port = if_name[15:]
+        if ret_port != '':
+            remote_tmp = ret_port.split('/')
+            s = 0
+            c = 0
+            p = 0
+            if len(remote_tmp) > 2:
+                s = int(remote_tmp[0])
+                c = int(remote_tmp[1])
+                p = int(remote_tmp[2])
+            elif len(remote_tmp) > 1:
+                s = int(remote_tmp[0])
+                p = int(remote_tmp[1])
+            else:
+                p = int(remote_tmp[0])
+            if c > port_c_first:
+                ret_port = 's{0}-c{1}-port{2}'.format(s, c, p)
+            elif s > port_s_first:
+                ret_port = 's{0}-port{2}'.format(s, c, p)
+            else:
+                ret_port = 'port{2}'.format(s, c, p)
+    return ret_port
+
 lldt_reader = list()
 for lldt_filename in lldt_filenames:
     with open(lldt_filename) as lldt_file:
@@ -120,6 +155,9 @@ for macp in macp_reader:
     macp_ip = macp[2]
     if macp_hostname == '':
         macp_hostname = macp_ip
+    macp_name = ''
+    if len(macp) > 4:
+        macp_name = macp[4]
     port_share = 999999
     port_data = {}
     if macp[1] == 'arp':
@@ -141,7 +179,7 @@ for macp in macp_reader:
     for lldt in lldt_reader:
         if len(lldt) < 2:
             continue
-        if macp[0] == lldt[0]:
+        if macp[0] == lldt[0] and not macp_ip == lldt[3]:
             pcnt = 0
             port_share = pcnt
             port_data = lldt
@@ -151,7 +189,25 @@ for macp in macp_reader:
             if port_hostname == '':
                 port_hostname = port_ip
 
+            port_name = ''
+            port_desc = ''
+            for pacp in macp_reader:
+                if pacp[1] == port_data[1] and pacp[2] == port_ip:
+                    if len(pacp) > 5:
+                        port_name = pacp[4]
+                        port_desc = pacp[5]
+                        break
+
+            data_name = ''
+            if len(port_data) > 6:
+                data_name = port_data[6]
+
+            remote_port = get_service_port(port_name)
+            service_port = get_service_port(macp_name)
+
             local_port = ''
+            local_name = ''
+            local_desc = ''
             for pldt in lldt_reader:
                 if len(pldt) < 4:
                     continue
@@ -159,16 +215,41 @@ for macp in macp_reader:
                     for pacp in macp_reader:
                         if pacp[0] == pldt[0] and pacp[2] == port_ip:
                             local_port = pldt[1]
+                            break
+                    if local_port != '':
+                        for pacp in macp_reader:
+                          if pacp[1] == local_port and pacp[2] == pldt[3]:
+                            if len(pacp) > 5:
+                                local_name = pacp[4]
+                                local_desc = pacp[5]
+                        break
+            if local_port == '' and data_name != '':
+                for pacp in macp_reader:
+                    if len(pacp) < 6:
+                        continue
+                    if pacp[4] == data_name and pacp[2] == macp_ip:
+                        #print(pacp[1]+';'+pacp[4]+';'+pacp[5])
+                        local_port = pacp[1]
+                        local_name = pacp[4]
+                        local_desc = pacp[5]
+                        break
+            if local_name != '':
+                service_port = get_service_port(local_name)
             if local_port == '' and macp[0] == arpa:
                 local_port = 'arp'
             local_service = 'snmp-int-port'+local_port
-            if local_port == 'arp':
+            if service_port != '':
+                local_service = 'snmp-int-'+service_port
+            elif local_port == 'arp':
                 local_service = 'ping4'
             elif local_port == 'chassis':
                 local_service = 'ping4'
             elif local_port != '':
                 local_service = 'snmp-int-port'+str(int(local_port))
-            parent_service = 'snmp-int-port'+str(int(port_data[1]))
+            if remote_port != '':
+                parent_service = 'snmp-int-'+remote_port
+            else:
+                parent_service = 'snmp-int-port'+str(int(port_data[1]))
 
             deps_skip = 0
             deps_reve = 0
@@ -197,7 +278,7 @@ for macp in macp_reader:
                 print('WARNING: duplicate host dependency found for:')
 
             if not deps_skip:
-                print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ('+local_port+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' (' + str(port_share) + ')')
+                print(macp[0] + ' ' + macp_ip + ' ' + macp_hostname + ' port ' + macp[1] + ' ' + macp_name + ' ' + data_name + ' ' + service_port + ' ('+local_port+' '+local_name+' '+local_desc+')' + ' found on ' + port_ip + ' ' + port_hostname + ' port ' + port_data[1] + ' ' + port_name + ' ' + remote_port + ' (' + str(port_share) + ')')
                 macf_f.write(macp[0] + ';' + macp_ip + ';' + macp_hostname + ';' + local_port + ';' + port_ip + ';' + port_hostname + ';' + port_data[1] + ';' + str(port_share) +'\n')
                 deps_list += macp_hostname+';'+local_port+';'+port_hostname+';'+port_data[1]+'\n'
 
