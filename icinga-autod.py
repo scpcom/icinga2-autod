@@ -778,6 +778,16 @@ def compile_hosts(data, location):
                     if ifde.startswith('Port #') and ifde == 'Port #'+ifal:
                         snmp_interface_ifalias = "true"
 
+        linevars = hostvars.split('\n')
+        is_switch = "false"
+        for line in linevars:
+            if 'vars.network_switch = ' in line:
+                is_switch = line.split(' = ')[1].strip('"')
+
+        if (is_comware == "true" or is_s1700 == "true" or is_hp1810v2 == "true") and is_switch != "true":
+            is_switch = "true"
+            hostvars += 'vars.network_switch = "' + is_switch + '"' +'\n  '
+
         fix_portno = 0
         if is_dgs3100 == "true":
             fix_portno = 1
@@ -797,14 +807,14 @@ def compile_hosts(data, location):
 
         if hdata['hostmac'] != '':
             #print(str(ip) + ' ' + hdata['hostname'] + ' got Host MAC')
-            macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] + ';' + 'arp' + ';' + ''  +'\n')
+            macp_f.write(hdata['hostmac'] + ';' + 'arp' + ';' + str(ip) + ';' + hdata['hostname'] + ';' + 'arp' + ';' + '' + ';' + is_switch +'\n')
 
         portcount = 0
 
         if len(phys_output) > 0:
             print(str(ip) + ' ' + hdata['hostname'] + ' got Port IDs')
             if chassisid != '':
-                macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] + ';' + 'chassis' + ';' + '' +'\n')
+                macp_f.write(chassisid + ';' + 'chassis' + ';' + str(ip) + ';' + hdata['hostname'] + ';' + 'chassis' + ';' + '' + ';' + is_switch +'\n')
             for line in phys_output:
                 if '.3.6.1.2.1.2.2.1.6.' in line:
                     line = '.'.join(line.split('.')[10:])
@@ -875,7 +885,7 @@ def compile_hosts(data, location):
                         if int(ifno) < 10:
                             ifno = '0'+ifno
                         portcount = portcount + 1
-                        macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] + ';' + ifna + ';' + ifal +'\n')
+                        macp_f.write(maca + ';' + ifno + ';' + str(ip) + ';' + hdata['hostname'] + ';' + ifna + ';' + ifal + ';' + is_switch +'\n')
 
         have_mact = 0
         output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.2.2.1.2')
@@ -1015,7 +1025,7 @@ def compile_hosts(data, location):
 
                     #print(ifno+';'+ifnr+';'+maca)
                     have_lldt = 1
-                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde + ';' + ifrsma +'\n')
+                    lldt_f.write(maca + ';' + ifno + ';' + ifnr+';' + str(ip) + ';' + hdata['hostname'] + ';' + ifrpid + ';' + ifrpde + ';' + ifrsid + ';' + ifrsde + ';' + ifrsma + ';' + is_switch +'\n')
 
         output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.17.7.1.4.3.1.1')
         if len(output) > 0:
