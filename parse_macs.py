@@ -158,6 +158,9 @@ for macp in macp_reader:
     macp_name = ''
     if len(macp) > 4:
         macp_name = macp[4]
+    macp_is_switch = ''
+    if len(macp) > 6:
+        macp_is_switch = macp[6]
     port_share = 999999
     port_data = {}
     if macp[1] == 'arp':
@@ -191,8 +194,11 @@ for macp in macp_reader:
 
             port_name = ''
             port_desc = ''
+            port_is_switch = ''
             for pacp in macp_reader:
                 if pacp[1] == port_data[1] and pacp[2] == port_ip:
+                    if len(pacp) > 6:
+                        port_is_switch = pacp[6]
                     if len(pacp) > 5:
                         port_name = pacp[4]
                         port_desc = pacp[5]
@@ -283,7 +289,10 @@ for macp in macp_reader:
                 deps_list += macp_hostname+';'+local_port+';'+port_hostname+';'+port_data[1]+'\n'
 
             if port_share == 0 and local_port != '' and not deps_skip:
-                host_deps = build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, deps_reve)
+                if macp_is_switch == 'true' and port_is_switch != 'true':
+                    host_deps = build_deps_entry(port_hostname, parent_service, macp_hostname, local_service, deps_reve)
+                else:
+                    host_deps = build_deps_entry(macp_hostname, local_service, port_hostname, parent_service, deps_reve)
                 if deps_reve:
                     revs_f.write(host_deps)
                 elif port_dupl:
