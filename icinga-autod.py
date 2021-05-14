@@ -454,7 +454,7 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
     return ed, ud, fd
 
 def skip_port(ifde, ifty, ifna, ifal):
-    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv']
+    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv', 'Bridge-Aggregation']
     desc_filter = ['IP Interface']
     alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
     # IANAifType-MIB
@@ -473,7 +473,7 @@ def skip_port(ifde, ifty, ifna, ifal):
     # 244 wwanPP2
     # 246 ilan
     # 247 pip
-    type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 150, 161, 188, 244, 246, 247]
+    type_filter = [1, 22, 23, 24, 53, 71, 131, 135, 142, 150, 188, 244, 246, 247]
 
     ifskip = 0
     for prefix in desc_filter:
@@ -493,7 +493,9 @@ def skip_port(ifde, ifty, ifna, ifal):
             ifskip = 1
             break
     iltmp = 0
-    if ifna.startswith('ch') and len(ifna) < 5:
+    if ifna.startswith('ae') and len(ifna) < 8:
+        iltmp = 2
+    elif ifna.startswith('ch') and len(ifna) < 5:
         iltmp = 2
     elif ifna.startswith('me') and len(ifna) < 5:
         iltmp = 2
