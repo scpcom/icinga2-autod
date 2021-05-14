@@ -781,7 +781,7 @@ def compile_hosts(data, location):
         fix_portno = 0
         if is_dgs3100 == "true":
             fix_portno = 1
-        if ifcount > 0:
+        if ifcount > 0 and not is_jex == "true":
             if iffirst > 1 and iffirst < ifcount:
                 fix_portno = 1
 
