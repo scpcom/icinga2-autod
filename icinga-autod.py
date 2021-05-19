@@ -3,6 +3,7 @@ import util.checkpkg as checkpkg
 
 checkpkg.check(['nmap', 'snmp', 'net-snmp-utils'])
 
+import csv
 import os
 import sys
 import subprocess
@@ -382,6 +383,18 @@ def get_mac_vendor(mac):
             break
     return mac_vendor
 
+def read_check_file(check_filename):
+    check_reader = list()
+    r_code = 1
+    try:
+        with open(check_filename) as check_file:
+            check_reader += list( csv.reader(check_file, delimiter=';') )
+            r_code = 0
+    except FileNotFoundError:
+        check_reader = list()
+    n_rows = len(check_reader)
+    return r_code, n_rows, check_reader
+
 def port_str(no):
     global is_dgs3100s2
 
@@ -579,6 +592,8 @@ def compile_hosts(data, location):
     mact_f = open(mact_filename, 'w')
     lldt_f = open(lldt_filename, 'w')
     vlan_f = open(vlan_filename, 'w')
+
+    nscp_r_code, nscp_n_rows, nscp_reader = read_check_file('discovered_hosts_nscp.csv')
 
     try:
         data_items = data.iteritems()
@@ -1199,6 +1214,13 @@ def compile_hosts(data, location):
               hostvars += 'vars.tr64_desc_location = "' + '/' + '/'.join(tr64_location[1:]) + '"' +'\n  '
               if tr64_control != '':
                   hostvars += 'vars.tr64_wancmnifc_control_url = "' + tr64_control + '"' +'\n  '
+        nscp_pass = ''
+        for nscp_row in nscp_reader:
+            if len(nscp_row) > 1:
+                if nscp_row[0] == str(ip):
+                    nscp_pass = nscp_row[1]
+        if nscp_pass != '':
+             hostvars += 'vars.nscp_password = "' + nscp_pass + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
         host_entry = build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
