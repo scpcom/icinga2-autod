@@ -1535,8 +1535,11 @@ def compile_hvars(sysdesc, devdesc):
         'Xerox WorkCentre': 'vars.network_printer = "true"',
         'Linux':'vars.os = "Linux"',
         'Windows':'vars.os = "Windows"',
-        'Debian': 'vars.agent_services = true',
-        'Ubuntu': 'vars.agent_services = true',
+        'Debian': 'vars.os_distributor = "Debian"',
+        'Ubuntu': 'vars.os_distributor = "Ubuntu"',
+        ' PVE ': 'vars.os_distributor = "Proxmox"',
+        'Debian ': 'vars.agent_services = true',
+        'Ubuntu ': 'vars.agent_services = true',
         'Windows ': 'vars.agent_services = true',
         'APC Web/SNMP': 'vars.ups_apc = "true"',
     }
