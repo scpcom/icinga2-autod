@@ -1231,9 +1231,13 @@ def compile_hosts(data, location, hostzone):
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
         zone_entry = ''
+        if agent_services == 'true' and hostfqdn == '' and hostzone != '':
+            if hostname != ip and '.' in hostzone:
+                hostfqdn = hostname + '.' + '.'.join(hostzone.split('.')[1:])
         if agent_services == 'true' and hostfqdn != '' and hostzone != '':
             hostvars += 'vars.client_endpoint = "' + hostfqdn + '"' +'\n  '
-            zone_entry = build_zone_entry(hostfqdn, hostzone)
+            if hostfqdn != hostzone:
+                zone_entry = build_zone_entry(hostfqdn, hostzone)
 
         host_entry = zone_entry + build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
 
