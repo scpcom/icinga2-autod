@@ -80,6 +80,9 @@ def build_parser():
     parser.add_argument('-t', '--thorough', default=0,
         help='Thorough scan mode (will take longer) - will try additional SNMP versions/communities to try to gather as much information as possible')
 
+    parser.add_argument('-Z', '--hostzone', default='',
+        help='Parent icinga zone of the host endpoints')
+
     return parser
 
 def main():
@@ -109,6 +112,7 @@ def main():
     cidr = args.network
 
     location = args.location
+    hostzone = args.hostzone
 
     credential = dict()
     credential['version'] = [ '2c', '1' ]
@@ -211,7 +215,7 @@ def main():
     compile_start = time.time()
     print("Writing data to config file. Please wait")
 
-    outfile = compile_hosts(all_hosts, location)
+    outfile = compile_hosts(all_hosts, location, hostzone)
     print("Compile took %s seconds" % (time.time() - compile_start))
     print("Wrote data to "+outfile)
 
@@ -546,7 +550,7 @@ def createFolder(directory):
     except OSError:
         print ('Error: Creating directory. ' +  directory)
 
-def compile_hosts(data, location):
+def compile_hosts(data, location, hostzone):
     global is_dgs3100s2
 
     tr64_desc_locations = [
@@ -796,8 +800,11 @@ def compile_hosts(data, location):
                         snmp_interface_ifalias = "true"
 
         linevars = hostvars.split('\n')
+        agent_services = ''
         is_switch = "false"
         for line in linevars:
+            if 'vars.agent_services = ' in line:
+                agent_services = line.split(' = ')[1].strip('"')
             if 'vars.network_switch = ' in line:
                 is_switch = line.split(' = ')[1].strip('"')
 
@@ -1223,7 +1230,12 @@ def compile_hosts(data, location):
              hostvars += 'vars.nscp_password = "' + nscp_pass + '"' +'\n  '
         if hdata['hostmac'] != '':
             hostvars += 'vars.mac_address = "' + hdata['hostmac'] + '"' +'\n  '
-        host_entry = build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
+        zone_entry = ''
+        if agent_services == 'true' and hostfqdn != '' and hostzone != '':
+            hostvars += 'vars.client_endpoint = "' + hostfqdn + '"' +'\n  '
+            zone_entry = build_zone_entry(hostfqdn, hostzone)
+
+        host_entry = zone_entry + build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
 
         if hdata['hostmac'] != '':
             host_filename = filedir + '/' + 'h-' + hdata['hostmac'].replace(':', '') + '.conf'
@@ -1240,6 +1252,19 @@ def compile_hosts(data, location):
     vlan_f.close()
 
     return filename
+
+def build_zone_entry(hostfqdn, hostzone):
+    zone_entry = ( 'object Endpoint "%s" {\n'
+                   '}\n'
+                   '\n'
+                   'object Zone "%s" {\n'
+                   '        endpoints = [ "%s" ]\n'
+                   '        parent = "%s"\n'
+                   '}\n'
+                   '\n'
+                 ) % (hostfqdn, hostfqdn, hostfqdn, hostzone)
+
+    return zone_entry
 
 def build_host_entry(hostname, ip, location, vendor, hostvars):
     icingaweb2_public = '/usr/share/icingaweb2/public'
