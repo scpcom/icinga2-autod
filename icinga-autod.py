@@ -597,6 +597,7 @@ def compile_hosts(data, location, hostzone):
     lldt_f = open(lldt_filename, 'w')
     vlan_f = open(vlan_filename, 'w')
 
+    done_list = ''
     nscp_r_code, nscp_n_rows, nscp_reader = read_check_file('discovered_hosts_nscp.csv')
 
     try:
@@ -1242,7 +1243,25 @@ def compile_hosts(data, location, hostzone):
         host_entry = zone_entry + build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
 
         if hdata['hostmac'] != '':
-            host_filename = filedir + '/' + 'h-' + hdata['hostmac'].replace(':', '') + '.conf'
+            done_found = 0
+            done_multi = 0
+            for done in done_list.split('\n'):
+                done = done.split(';')
+                if len(done) > 2 and done[0] == hostmac:
+                    if done[1] == str(ip):
+                        done_found = 1
+                        break
+                    else:
+                        print(str(ip) + ' ' + hostname + ' WARNING: found same MAC address on ' + done[1])
+                        done_multi = 1
+
+            if not done_found:
+                done_list += hostmac+';'+str(ip)+';'+hostname+'\n'
+
+            host_filename = filedir + '/' + 'h-' + hdata['hostmac'].replace(':', '')
+            if done_multi:
+                 host_filename += '-'+str(ip)
+            host_filename += '.conf'
             host_f = open(host_filename, 'w')
             host_f.write(host_entry)
             host_f.close()
