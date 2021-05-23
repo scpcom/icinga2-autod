@@ -83,6 +83,9 @@ def build_parser():
     parser.add_argument('-Z', '--hostzone', default='',
         help='Parent icinga zone of the host endpoints')
 
+    parser.add_argument('-m', '--minimze_tr64', default='',
+        help='Do not scan all possible tr64 locations')
+
     return parser
 
 def main():
@@ -112,7 +115,6 @@ def main():
     cidr = args.network
 
     location = args.location
-    hostzone = args.hostzone
 
     credential = dict()
     credential['version'] = [ '2c', '1' ]
@@ -215,7 +217,7 @@ def main():
     compile_start = time.time()
     print("Writing data to config file. Please wait")
 
-    outfile = compile_hosts(all_hosts, location, hostzone)
+    outfile = compile_hosts(all_hosts, location, args)
     print("Compile took %s seconds" % (time.time() - compile_start))
     print("Wrote data to "+outfile)
 
@@ -550,10 +552,14 @@ def createFolder(directory):
     except OSError:
         print ('Error: Creating directory. ' +  directory)
 
-def compile_hosts(data, location, hostzone):
+def compile_hosts(data, location, args):
     global is_dgs3100s2
 
-    tr64_desc_locations = [
+    min_tr64_desc_locations = [
+        '49000/igddesc.xml',
+        '80/upnp/BasicDevice.xml',
+    ]
+    all_tr64_desc_locations = [
         '49000/igddesc.xml',
         '49000/tr64desc.xml',
         '49000/fboxdesc.xml',
@@ -575,6 +581,13 @@ def compile_hosts(data, location, hostzone):
         '9197/dmr',
         '1401/',
     ]
+
+    hostzone = args.hostzone
+    minimze_tr64 = args.minimze_tr64
+
+    tr64_desc_locations = all_tr64_desc_locations
+    if minimze_tr64:
+        tr64_desc_locations = min_tr64_desc_locations
 
     set_upnp_ns(0)
 
