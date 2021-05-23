@@ -83,7 +83,7 @@ def build_parser():
     parser.add_argument('-Z', '--hostzone', default='',
         help='Parent icinga zone of the host endpoints')
 
-    parser.add_argument('-m', '--minimze_tr64', default='',
+    parser.add_argument('-m', '--minimze-tr64', default='',
         help='Do not scan all possible tr64 locations')
 
     return parser
