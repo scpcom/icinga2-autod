@@ -1099,7 +1099,8 @@ def compile_hosts(data, location, args):
         snmp_load_type = ""
         if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.2'):
             snmp_load_type = "stand"
-        if snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.10.1.2'):
+        if (snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.25.3.3.1.1') and
+            snmpwalk_tree_valid(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.4.1.2021.10.1.2')):
             snmp_load_type = "netsl"
 
         snmp_is_netsnmp = "false"
