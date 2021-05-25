@@ -1132,12 +1132,18 @@ def compile_hosts(data, location, args):
         snmp_storage_mem_name=''
         snmp_storage_swap_name=''
         snmp_storage_disk_name=''
+        snmp_storage_fs_name=''
         if len(desc_output) > 0:
             for line in desc_output:
                 if '.3.6.1.2.1.25.2.3.1.3.' in line:
                     line = '.'.join(line.split('.')[11:])
                     stno = int(line.split(' ') [0])
                     stna = ': '.join(line.split(': ')[1:]).strip('"')
+
+                    #if stna.startswith('MALLOC: ') or stna.startswith('UMA: '):
+                    #    continue
+                    if stna.startswith('devfs: ') or stna.startswith('procfs: '):
+                        continue
 
                     stty = 0
                     for type in type_output:
@@ -1146,16 +1152,20 @@ def compile_hosts(data, location, args):
                             if '.3.6.1.2.1.25.2.1.' in type:
                                 type = ': '.join(type.split(': ')[1:]).strip('"')
                                 stty=int(type.split('.')[-1:][0])
+                            elif '.3.6.1.2.1.25.3.9.' in type:
+                                stty=255
                     if ':\\\\ Label:' in stna:
                         stna = stna.split(' Label:')[0]
                         stna = '\\\\'.join(stna.split('\\'))
                     #print(str(stno)+';'+str(stty)+';'+stna)
-                    if stty == 2:
+                    if stty == 2 and snmp_storage_mem_name == '':
                         snmp_storage_mem_name=stna
-                    elif stty == 3:
+                    elif stty == 3 and snmp_storage_swap_name == '':
                         snmp_storage_swap_name=stna
                     elif stty == 4 and snmp_storage_disk_name == '' or stna == '/':
                         snmp_storage_disk_name=stna
+                    elif stty == 255 and snmp_storage_fs_name == '' or stna == '/':
+                        snmp_storage_fs_name=stna
 
         #print(str(ifcount) + ' interfaces')
         if is_comware == "true":
@@ -1219,6 +1229,7 @@ def compile_hosts(data, location, args):
         if snmp_is_hp == "true":
             hostvars += 'vars.snmp_is_hp = "' + snmp_is_hp + '"' +'\n  '
         if snmp_storage_mem_name != '' and snmp_is_netsnmp == "false" and snmp_is_hp == "false":
+             snmp_storage_mem_name = '^'+snmp_storage_mem_name+'$$'
              hostvars += 'vars.snmp_storage_mem_name = "' + snmp_storage_mem_name + '"' +'\n  '
         if snmp_storage_swap_name != '' and snmp_is_netsnmp == "false" and snmp_is_hp == "false":
              hostvars += 'vars.snmp_storage_swap_name = "' + snmp_storage_swap_name + '"' +'\n  '
@@ -1226,6 +1237,10 @@ def compile_hosts(data, location, args):
              if snmp_storage_disk_name.startswith('/'):
                  snmp_storage_disk_name = '^'+snmp_storage_disk_name+'$$'
              hostvars += 'vars.snmp_storage_disk_name = "' + snmp_storage_disk_name + '"' +'\n  '
+        elif snmp_storage_fs_name != '':
+             if snmp_storage_fs_name.startswith('/'):
+                 snmp_storage_fs_name = '^'+snmp_storage_fs_name+'$$'
+             hostvars += 'vars.snmp_storage_fs_name = "' + snmp_storage_fs_name + '"' +'\n  '
         if tr64_device is not None:
               tr64_location = tr64_location.split(':')[-1].split('/')
               if tr64_control_port != '':
