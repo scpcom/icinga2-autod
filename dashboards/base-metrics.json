@@ -1127,7 +1127,7 @@
                 }
               ],
               "hide": false,
-              "measurement": "check_drivesize",
+              "measurement": "disk-windows",
               "policy": "default",
               "query": "SELECT mean(\"value\") FROM \"disk\" WHERE \"hostname\" =~ /^$hostname$/ AND \"metric\" =~ /^$disk$/ AND $timeFilter GROUP BY time($interval) fill(none)",
               "rawQuery": false,
@@ -1179,7 +1179,7 @@
                 }
               ],
               "hide": false,
-              "measurement": "check_drivesize",
+              "measurement": "disk-windows",
               "policy": "default",
               "query": "SELECT mean(\"value\") FROM \"disk\" WHERE \"hostname\" =~ /^$hostname$/ AND \"metric\" =~ /^$disk$/ AND $timeFilter GROUP BY time($interval) fill(none)",
               "rawQuery": false,
@@ -1231,7 +1231,7 @@
                 }
               ],
               "hide": false,
-              "measurement": "check_drivesize",
+              "measurement": "disk-windows",
               "policy": "default",
               "query": "SELECT mean(\"value\") FROM \"disk\" WHERE \"hostname\" =~ /^$hostname$/ AND \"metric\" =~ /^$disk$/ AND $timeFilter GROUP BY time($interval) fill(none)",
               "rawQuery": false,
@@ -2944,9 +2944,9 @@
         "multi": false,
         "name": "windisk",
         "options": [],
-        "query": "SHOW TAG VALUES FROM \"check_drivesize\" WITH KEY = \"metric\" where hostname =~ /^$hostname$/ AND service =~ /^$service/",
+        "query": "SHOW TAG VALUES FROM \"disk-windows\" WITH KEY = \"metric\" where hostname =~ /^$hostname$/ AND service =~ /^$service/",
         "refresh": 1,
-        "regex": "/[a-z]: free$/",
+        "regex": "",
         "sort": 0,
         "tagValuesQuery": "",
         "tags": [],
