@@ -1360,6 +1360,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     linevars = hostvars.split('\n')
     sysdesc = ""
+    sysos = ""
+    sysep = ""
     is_comware = "false"
     is_esxg = "false"
     is_s1700 = "false"
@@ -1380,6 +1382,10 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     for line in linevars:
         if 'vars.description = ' in line:
             sysdesc = line.split(' = ')[1].strip('"')
+        if 'vars.os = ' in line:
+            sysos = line.split(' = ')[1].strip('"')
+        if 'vars.client_endpoint = ' in line:
+            sysep = line.split(' = ')[1].strip('"')
         if 'vars.network_comware = ' in line:
             is_comware = line.split(' = ')[1].strip('"')
         if 'vars.network_esxg = ' in line:
@@ -1528,6 +1534,24 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
                 althttp = parse_nmap_port_scan(output, '{0}/tcp '.format(port))
             if althttp:
                 print(str(ip) + ' ' + hostname + ' port '+str(port)+' open')
+
+    pardisk = ''
+    sysdisk = ''
+    if sysep != '':
+        if sysos == 'Windows':
+            pardisk = 'disk_win_path'
+            sysdisk = 'C:'
+        else:
+            pardisk = 'disk_partitions'
+            sysdisk = '/'
+
+    if sysdisk != '':
+        host_entry += '  vars.disks["disk"] = {\n'
+        host_entry += '    /* No parameters. */\n'
+        host_entry += '  }\n'
+        host_entry += '  vars.disks["disk '+sysdisk+'"] = {\n'
+        host_entry += '    '+pardisk+' = "'+sysdisk+'"\n'
+        host_entry += '  }\n'
 
     if syshttp == 1:
         host_entry += '  vars.http_vhosts["http"] = {\n'
