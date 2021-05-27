@@ -3009,7 +3009,7 @@
           "measurement": "nics",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"receive\"), 10s) AS \"Rx\", non_negative_derivative(mean(\"receive\"), 10s) AS \"Tx\" FROM \"nics\" WHERE (\"host\" =~ /^$server$/ AND \"instance\" = 'enp2s0') AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "query": "SELECT non_negative_derivative(mean(\"receive\"), 10s) AS \"Rx\", non_negative_derivative(mean(\"receive\"), 10s) AS \"Tx\" FROM \"nics\" WHERE (\"host\" =~ /^$server$/ AND \"instance\" =~ /^$nic$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
           "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
@@ -3048,8 +3048,8 @@
             {
               "condition": "AND",
               "key": "instance",
-              "operator": "=",
-              "value": "enp2s0"
+              "operator": "=~",
+              "value": "/^$nic$/"
             }
           ]
         },
@@ -3103,8 +3103,8 @@
             {
               "condition": "AND",
               "key": "instance",
-              "operator": "=",
-              "value": "enp2s0"
+              "operator": "=~",
+              "value": "/^$nic$/"
             }
           ]
         }
@@ -3113,7 +3113,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "enp2s0",
+      "title": "$nic",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -4294,6 +4294,28 @@
         "query": "SHOW TAG VALUES FROM system WITH KEY=host WHERE object='nodes'",
         "refresh": 1,
         "regex": "",
+        "skipUrlSync": false,
+        "sort": 5,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {},
+        "datasource": "${DS_PROXMOX}",
+        "definition": "SHOW TAG VALUES FROM nics WITH KEY=instance WHERE object='nodes' AND (\"host\" =~ /^$server$/)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "NIC",
+        "multi": false,
+        "name": "nic",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM nics WITH KEY=instance WHERE object='nodes' AND (\"host\" =~ /^$server$/)",
+        "refresh": 1,
+        "regex": "^eno|^enp|^ens|^eth|^vmbr",
         "skipUrlSync": false,
         "sort": 5,
         "tagValuesQuery": "",
