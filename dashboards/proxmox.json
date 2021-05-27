@@ -4315,7 +4315,7 @@
         "options": [],
         "query": "SHOW TAG VALUES FROM nics WITH KEY=instance WHERE object='nodes' AND (\"host\" =~ /^$server$/)",
         "refresh": 1,
-        "regex": "^eno|^enp|^ens|^eth|^vmbr",
+        "regex": "/^eno|^enp|^ens|^eth|^vmbr/",
         "skipUrlSync": false,
         "sort": 5,
         "tagValuesQuery": "",
