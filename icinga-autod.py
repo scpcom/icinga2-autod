@@ -1530,6 +1530,18 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     else:
         syshttps = parse_nmap_port_scan(output, '443/tcp ')
 
+    if syshttps == 1:
+        ret, output, err = exec_command('nmap -sV --script ssl-enum-ciphers -p443 {0}'.format(ip))
+        if ret and err:
+            syshttps = 0
+        else:
+            syshttps = parse_nmap_ssl_scan(output)
+        if syshttps < 0:
+            print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but only legacy ciphers available.')
+            syshttps = 0
+        elif not syshttps:
+            print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but unable to enum ssl ciphers.')
+
     althttp_ports = [ 1080, 1443, 3128, 8080, 8443, 10080, 10443 ]
     if thorough:
         for port in althttp_ports:
@@ -1585,6 +1597,34 @@ def parse_nmap_port_scan(data, match):
             if line == 'open':
                 ret = 1
 
+    return ret
+
+def parse_nmap_ssl_scan(data):
+    data_list = data.split('\n')
+    ret = 0
+    got_tls1_2 = 0
+    got_tls1_1 = 0
+    got_tls1_0 = 0
+    got_aes = 0
+    got_3des = 0
+    got_rc4 = 0
+    for line in data_list:
+        if "TLSv1.2:" in line and line is not None:
+            got_tls1_2 = 1
+        elif "TLSv1.1:" in line and line is not None:
+            got_tls1_1 = 1
+        elif "TLSv1.0:" in line and line is not None:
+            got_tls1_0 = 1
+        elif "_WITH_AES_" in line and line is not None:
+            got_aes = 1
+        elif "_WITH_3DES_" in line and line is not None:
+            got_3des = 1
+        elif "_WITH_RC4_" in line and line is not None:
+            got_rc4 = 1
+    if got_aes and got_tls1_2:
+        ret = 1
+    elif (got_3des or got_rc4) and (got_tls1_1 or got_tls1_0):
+        ret = -1
     return ret
 
 def compile_hvars(sysdesc, devdesc):
