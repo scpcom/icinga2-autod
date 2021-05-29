@@ -1574,11 +1574,13 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     if syshttp == 1:
         host_entry += '  vars.http_vhosts["http"] = {\n'
+        host_entry += '    http_vhost = "$check_address$"\n'
         host_entry += '    http_uri = "/"\n'
         host_entry += '  }\n'
 
     if syshttps == 1:
         host_entry += '  vars.http_vhosts["https"] = {\n'
+        host_entry += '    http_vhost = "$check_address$"\n'
         host_entry += '    http_port = 443\n'
         host_entry += '    http_ssl = true\n'
         host_entry += '    http_uri = "/"\n'
