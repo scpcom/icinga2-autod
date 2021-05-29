@@ -1523,6 +1523,13 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     else:
         syshttp = parse_nmap_port_scan(output, '80/tcp ')
 
+    syshttps = 0
+    ret, output, err = exec_command('nmap -p443 {0}'.format(ip))
+    if ret and err:
+        syshttps = 0
+    else:
+        syshttps = parse_nmap_port_scan(output, '443/tcp ')
+
     althttp_ports = [ 1080, 1443, 3128, 8080, 8443, 10080, 10443 ]
     if thorough:
         for port in althttp_ports:
@@ -1555,6 +1562,13 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
 
     if syshttp == 1:
         host_entry += '  vars.http_vhosts["http"] = {\n'
+        host_entry += '    http_uri = "/"\n'
+        host_entry += '  }\n'
+
+    if syshttps == 1:
+        host_entry += '  vars.http_vhosts["https"] = {\n'
+        host_entry += '    http_port = 443\n'
+        host_entry += '    http_ssl = true\n'
         host_entry += '    http_uri = "/"\n'
         host_entry += '  }\n'
 
