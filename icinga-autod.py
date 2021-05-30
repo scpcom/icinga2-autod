@@ -622,6 +622,11 @@ def compile_hosts(data, location, args):
         if hdata['community'] != '' and  hdata['community'] != 'unknown':
             have_snmp = 1
 
+        hostfqdn = ''
+        hostname = hdata['hostname']
+        if not hostname:
+            hostname = ''
+
         tr64_location = ''
         tr64_control_port = ''
         tr64_control = ''
@@ -686,18 +691,62 @@ def compile_hosts(data, location, args):
         if hostmac != '' and not sysvendor:
             sysvendor = get_mac_vendor(hostmac)
 
+        syshttp = 0
+        ret, output, err = exec_command('nmap -p80 {0}'.format(ip))
+        if ret and err:
+            syshttp = 0
+        else:
+            syshttp = parse_nmap_port_scan(output, '80/tcp ')
+
+        nicName = ''
+        if syshttp == 1:
+            ret, output, err = exec_command('wget --no-check-certificate -O- http://{0}/'.format(ip))
+            if ret and err:
+                output = ''
+            for line in output.split('\n'):
+                if 'Integrated Lights-Out 2' in line or 'Integrated Lights Out 2' in line:
+                    if sysdesc == '':
+                        sysdesc = 'Integrated Lights-Out 2'
+                elif 'Integrated Lights-Out 3' in line or 'Integrated Lights Out 3' in line:
+                    if sysdesc == '':
+                        sysdesc = 'Integrated Lights-Out 3'
+                elif 'nicName="' in line:
+                    if nicName == '':
+                        nicName = line.split('"')[1]
+
+        syshttps = 0
+        ret, output, err = exec_command('nmap -p443 {0}'.format(ip))
+        if ret and err:
+            syshttps = 0
+        else:
+            syshttps = parse_nmap_port_scan(output, '443/tcp ')
+
+        if syshttps == 1:
+            ret, output, err = exec_command('nmap --script ssl-enum-ciphers -p443 {0}'.format(ip))
+            if ret and err:
+                syshttps = 0
+            else:
+                syshttps = parse_nmap_ssl_scan(output)
+            if syshttps < 0:
+                print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but only legacy ciphers available.')
+                syshttps = 0
+            elif not syshttps:
+                print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but unable to enum ssl ciphers.')
+
         hostvars = compile_hvars(sysdesc, devdesc)
         hostlocation = location
         if hdata['syslocation'] != '':
             hostlocation = hdata['syslocation']
 
-        hostfqdn = ''
-        if not hdata['hostname']:
+        if 'Integrated Lights-Out' in sysdesc and nicName != '' and hostname == '':
+            hostname = nicName
+        if hostname == '':
             hostname = ip
         else:
-            hostname = hdata['hostname'].split('.')[0]
-            if hostname != hdata['hostname']:
-                hostfqdn = hdata['hostname']
+            hostfqdn = hostname
+            hostname = hostname.split('.')[0]
+            if hostfqdn == hostname:
+                hostfqdn = ''
 
         if tr64_device is None:
             sysupnp = 0
@@ -1268,8 +1317,9 @@ def compile_hosts(data, location, args):
             hostvars += 'vars.client_endpoint = "' + hostfqdn + '"' +'\n  '
             if hostfqdn != hostzone:
                 zone_entry = build_zone_entry(hostfqdn, hostzone)
-
-        host_entry = zone_entry + build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars))
+        hdata['syshttp'] = syshttp
+        hdata['syshttps'] = syshttps
+        host_entry = zone_entry + build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars), hdata)
 
         if hdata['hostmac'] != '':
             done_found = 0
@@ -1318,7 +1368,7 @@ def build_zone_entry(hostfqdn, hostzone):
 
     return zone_entry
 
-def build_host_entry(hostname, ip, location, vendor, hostvars):
+def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
     icingaweb2_public = '/usr/share/icingaweb2/public'
     icon_filenames = (
         'custom/%s.png',
@@ -1338,6 +1388,10 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         'FRITZ!': 'fritz',
         'iDRAC9': 'idrac-9',
         'Integrated Dell Remote Access Controller 9': 'idrac-9',
+        'iLO 2': 'ilo-2',
+        'Integrated Lights-Out 2': 'ilo-2',
+        'iLO 3': 'ilo-4',
+        'Integrated Lights-Out 3': 'ilo-4',
         'iLO 4': 'ilo-4',
         'Integrated Lights-Out 4': 'ilo-4',
         'iLO 5': 'ilo-4',
@@ -1516,31 +1570,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
     if hostvars:
         host_entry += '  {0}\n'.format(hostvars)
 
-    syshttp = 0
-    ret, output, err = exec_command('nmap -p80 {0}'.format(ip))
-    if ret and err:
-        syshttp = 0
-    else:
-        syshttp = parse_nmap_port_scan(output, '80/tcp ')
-
-    syshttps = 0
-    ret, output, err = exec_command('nmap -p443 {0}'.format(ip))
-    if ret and err:
-        syshttps = 0
-    else:
-        syshttps = parse_nmap_port_scan(output, '443/tcp ')
-
-    if syshttps == 1:
-        ret, output, err = exec_command('nmap --script ssl-enum-ciphers -p443 {0}'.format(ip))
-        if ret and err:
-            syshttps = 0
-        else:
-            syshttps = parse_nmap_ssl_scan(output)
-        if syshttps < 0:
-            print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but only legacy ciphers available.')
-            syshttps = 0
-        elif not syshttps:
-            print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but unable to enum ssl ciphers.')
+    syshttp = hdata['syshttp']
+    syshttps = hdata['syshttps']
 
     althttp_ports = [ 1080, 1443, 3128, 8080, 8443, 10080, 10443 ]
     if thorough:
