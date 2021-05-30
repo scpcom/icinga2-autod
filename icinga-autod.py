@@ -1531,7 +1531,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars):
         syshttps = parse_nmap_port_scan(output, '443/tcp ')
 
     if syshttps == 1:
-        ret, output, err = exec_command('nmap -sV --script ssl-enum-ciphers -p443 {0}'.format(ip))
+        ret, output, err = exec_command('nmap --script ssl-enum-ciphers -p443 {0}'.format(ip))
         if ret and err:
             syshttps = 0
         else:
