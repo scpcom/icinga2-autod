@@ -633,6 +633,15 @@ def compile_hosts(data, location, args):
         hostname = hdata['hostname']
         if not hostname:
             hostname = ''
+        if hostname == '':
+            ret, output, err = exec_command('nslookup {0}'.format(ip))
+            if ret and err:
+                output = ''
+            for line in output.split('\n'):
+                if 'name = ' in line:
+                    hostname = line.split(' = ')[1]
+        if hostname.endswith('.'):
+            hostname = hostname[:-1]
 
         tr64_location = ''
         tr64_control_port = ''
