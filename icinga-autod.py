@@ -2003,7 +2003,7 @@ def exec_command(command):
                              stderr=subprocess.PIPE)
     output, err_msg = sub_p.communicate()
     if output:
-        output = output.decode('utf8')
+        output = output.decode(encoding='utf-8',errors='backslashreplace')
     return (sub_p.returncode, output, err_msg)
 
 
