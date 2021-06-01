@@ -635,7 +635,7 @@ def compile_hosts(data, location, args):
             hostname = ''
         if hostname == '':
             ret, output, err = exec_command('nslookup {0}'.format(ip))
-            if ret and err:
+            if ret and err or not output:
                 output = ''
             for line in output.split('\n'):
                 if 'name = ' in line:
@@ -717,7 +717,7 @@ def compile_hosts(data, location, args):
         nicName = ''
         if syshttp == 1:
             ret, output, err = exec_command('wget --no-check-certificate -O- http://{0}/'.format(ip))
-            if ret and err:
+            if ret and err or not output:
                 output = ''
             for line in output.split('\n'):
                 if 'Integrated Lights-Out 2' in line or 'Integrated Lights Out 2' in line:
