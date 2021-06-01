@@ -584,6 +584,13 @@ def compile_hosts(data, location, args):
 
     hostzone = args.hostzone
     minimze_tr64 = args.minimze_tr64
+    altportscan = 1
+
+    mon_hostname = socket.gethostname()
+    mon_ip = socket.gethostbyname(mon_hostname)
+    grafana_proxmox_url = ""
+    if mon_ip != '127.0.0.1':
+        grafana_proxmox_url = "http://{0}:{1}/d/kxQQuHRZk/proxmox?orgId=1&refresh=15m&var-server=$name$".format(mon_ip, 3000)
 
     tr64_desc_locations = all_tr64_desc_locations
     if minimze_tr64:
@@ -732,6 +739,60 @@ def compile_hosts(data, location, args):
                 syshttps = 0
             elif not syshttps:
                 print(str(ip) + ' ' + hostname + ' WARNING: HTTPS port is open but unable to enum ssl ciphers.')
+
+        action_urls = ""
+        if syshttps == 1:
+            action_urls += "'https://{0}/' ".format('$address$')
+        elif syshttp == 1:
+            action_urls += "'http://{0}/' ".format('$address$')
+
+        althttp_ports = [ 1080, 3000, 3128, 8080, 10080 ]
+        if thorough:
+            for port in althttp_ports:
+                althttp = 0
+                ret, output, err = exec_command('nmap -p{0} {1}'.format(port, ip))
+                if ret and err:
+                    althttp = 0
+                else:
+                    althttp = parse_nmap_port_scan(output, '{0}/tcp '.format(port))
+                if althttp:
+                    print(str(ip) + ' ' + hostname + ' port '+str(port)+' open')
+
+        althttps_ports = [ 8006, 8007, 8443 ]
+        if thorough:
+            althttps_ports = [ 1443, 3129, 8006, 8007, 8443, 10443 ]
+        if altportscan:
+            for port in althttps_ports:
+                althttps = 0
+                ret, output, err = exec_command('nmap -p{0} {1}'.format(port, ip))
+                if ret and err:
+                    althttps = 0
+                else:
+                    althttps = parse_nmap_port_scan(output, '{0}/tcp '.format(port))
+
+                if althttps == 1:
+                    ret, output, err = exec_command('nmap --script +ssl-enum-ciphers -p{0} {1}'.format(port, ip))
+                    if ret and err:
+                        althttps = 0
+                    else:
+                        althttps = parse_nmap_ssl_scan(output)
+                    if althttps < 0:
+                        print(str(ip) + ' ' + hostname + ' WARNING: Alt HTTPS port {0} is open but only legacy ciphers available.'.format(port))
+                        althttps = 0
+                    elif not althttps:
+                        print(str(ip) + ' ' + hostname + ' WARNING: Alt HTTPS port {0} is open but unable to enum ssl ciphers.'.format(port))
+
+                if althttps == 1:
+                    action_urls += "'https://{0}:{1}/' ".format('$address$', port)
+                    # add grafana link for proxmox dashboard
+                    if port == 8006 and grafana_proxmox_url != "":
+                        action_urls += "'{0}' ".format(grafana_proxmox_url)
+
+        if action_urls.endswith(' '):
+            action_urls = action_urls[:-1]
+        if action_urls.startswith("'") and action_urls.endswith("'") and len(action_urls) > 2:
+            if not "'" in action_urls[1:-1]:
+                action_urls = action_urls[1:-1]
 
         hostvars = compile_hvars(sysdesc, devdesc)
         hostlocation = location
@@ -1317,6 +1378,7 @@ def compile_hosts(data, location, args):
             hostvars += 'vars.client_endpoint = "' + hostfqdn + '"' +'\n  '
             if hostfqdn != hostzone:
                 zone_entry = build_zone_entry(hostfqdn, hostzone)
+        hdata['action_urls'] = action_urls
         hdata['syshttp'] = syshttp
         hdata['syshttps'] = syshttps
         host_entry = zone_entry + build_host_entry(hostname, str(ip), hostlocation, sysvendor, str(hostvars), hdata)
@@ -1540,8 +1602,12 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             if icon_image != "":
                 break
 
+    action_urls = hdata['action_urls']
+
     if icon_image != "":
         host_entry += '  icon_image = "{0}"\n'.format(icon_image)
+    if action_urls != "":
+        host_entry += '  action_url = "{0}"\n'.format(action_urls)
     if location:
         host_entry += '  vars.location = "{0}"\n'.format(location)
     if vendor:
@@ -1572,18 +1638,6 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
 
     syshttp = hdata['syshttp']
     syshttps = hdata['syshttps']
-
-    althttp_ports = [ 1080, 1443, 3128, 8080, 8443, 10080, 10443 ]
-    if thorough:
-        for port in althttp_ports:
-            althttp = 0
-            ret, output, err = exec_command('nmap -p{0} {1}'.format(port, ip))
-            if ret and err:
-                althttp = 0
-            else:
-                althttp = parse_nmap_port_scan(output, '{0}/tcp '.format(port))
-            if althttp:
-                print(str(ip) + ' ' + hostname + ' port '+str(port)+' open')
 
     pardisk = ''
     sysdisk = ''
