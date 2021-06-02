@@ -729,6 +729,16 @@ def compile_hosts(data, location, args):
                 elif 'nicName="' in line:
                     if nicName == '':
                         nicName = line.split('"')[1]
+                elif ' XCP-ng ' in line:
+                    if sysdesc == '':
+                        sysdesc = 'XCP-ng'
+                    elif not 'XCP-ng' in sysdesc:
+                        sysdesc += ' XCP-ng'
+                elif ' XenServer ' in line:
+                    if sysdesc == '':
+                        sysdesc = 'XenServer'
+                    elif not 'XenServer' in sysdesc:
+                        sysdesc += ' XenServer'
 
         syshttps = 0
         ret, output, err = exec_command('nmap -p443 {0}'.format(ip))
@@ -1470,6 +1480,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
         'SEH myUTN': 'seh-technology',
         'pfSense': 'pfsense',
         'FreeBSD': 'freebsd',
+        'XCP-ng': 'xcp-ng',
+        'XenServer': 'xs',
         'Linux': 'tux',
         'Windows': 'win',
     }
@@ -1763,6 +1775,8 @@ def compile_hvars(sysdesc, devdesc):
         'Debian': 'vars.os_distributor = "Debian"',
         'Ubuntu': 'vars.os_distributor = "Ubuntu"',
         ' PVE ': 'vars.os_distributor = "Proxmox"',
+        'XCP-ng': 'vars.os_distributor = "XCP-ng"',
+        'XenServer':  'vars.os_distributor = "XenServer"',
         'Debian ': 'vars.agent_services = true',
         'Ubuntu ': 'vars.agent_services = true',
         'Windows ': 'vars.agent_services = true',
