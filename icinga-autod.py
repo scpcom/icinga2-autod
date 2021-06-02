@@ -806,6 +806,11 @@ def compile_hosts(data, location, args):
                     # add grafana link for proxmox dashboard
                     if port == 8006 and grafana_proxmox_url != "":
                         action_urls += "'{0}' ".format(grafana_proxmox_url)
+                    if port == 8006 or port == 8007:
+                        if sysdesc == '':
+                            sysdesc = 'Proxmox'
+                        elif not 'Proxmox' in sysdesc:
+                            sysdesc += ' Proxmox'
 
         if action_urls.endswith(' '):
             action_urls = action_urls[:-1]
@@ -1480,6 +1485,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
         'SEH myUTN': 'seh-technology',
         'pfSense': 'pfsense',
         'FreeBSD': 'freebsd',
+        'Proxmox': 'proxmox',
         'XCP-ng': 'xcp-ng',
         'XenServer': 'xs',
         'Linux': 'tux',
