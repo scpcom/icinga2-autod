@@ -1497,6 +1497,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
         'Cisco Systems': 'cisco',
         'Dell Inc': 'dell',
         'D-Link Systems': 'dlink',
+        'Ubiquiti Networks': 'ubnt',
     }
     host_entry = ( 'object Host "%s" {\n'
                    '  import "generic-host"\n'
