@@ -2607,8 +2607,8 @@
             {
               "condition": "AND",
               "key": "nodename",
-              "operator": "=",
-              "value": "dianna"
+              "operator": "=~",
+              "value": "/^$server$/"
             }
           ]
         }
