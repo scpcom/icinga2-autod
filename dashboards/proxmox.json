@@ -2494,7 +2494,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "-1048576",
           "show": true
         },
         {
@@ -2637,7 +2637,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "-1048576",
           "show": true
         },
         {
@@ -2780,7 +2780,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "-1048576",
           "show": true
         },
         {
@@ -2923,7 +2923,7 @@
           "label": null,
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "-1048576",
           "show": true
         },
         {
