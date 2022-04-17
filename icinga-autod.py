@@ -473,7 +473,7 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
     return ed, ud, fd
 
 def skip_port(ifde, ifty, ifna, ifal):
-    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv', 'Bridge-Aggregation']
+    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv', 'Bridge-Aggregation', 'oob']
     desc_filter = ['IP Interface']
     alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
     # IANAifType-MIB
@@ -519,6 +519,8 @@ def skip_port(ifde, ifty, ifna, ifal):
     elif ifna.startswith('me') and len(ifna) < 5:
         iltmp = 2
     elif ifna.startswith('po') and len(ifna) < 5:
+        iltmp = 2
+    elif ifna.startswith('Po') and len(ifna) < 5:
         iltmp = 2
     elif ifna.startswith('tap') or ifna.startswith('vif'):
         iltmp = 3
@@ -858,6 +860,8 @@ def compile_hosts(data, location, args):
         is_esxg = "false"
         is_s1700 = "false"
         is_sg300 = "false"
+        is_sg350 = "false"
+        is_sx350 = "false"
         is_jex = "false"
         is_jexge0 = "false"
         is_jexge1 = "false"
@@ -919,6 +923,10 @@ def compile_hosts(data, location, args):
                         is_s1700 = "true"
                     if ifna.startswith('gi') and ifde.startswith('gigabitethernet'):
                         is_sg300 = "true"
+                    if ifna.startswith('tw') and ifde.startswith('TwoPointFiveGigabitEthernet'):
+                        is_sg350 = "true"
+                    if ifna.startswith('te') and ifde.startswith('TenGigabitEthernet'):
+                        is_sx350 = "true"
                     if ifna.startswith('ge-0/0/'):
                         is_jex = "true"
                         is_jexge0 = "true"
@@ -1310,6 +1318,10 @@ def compile_hosts(data, location, args):
             hostvars += 'vars.network_s1700 = "' + is_s1700 + '"' +'\n  '
         if is_sg300 == "true":
             hostvars += 'vars.network_sg300 = "' + is_sg300 + '"' +'\n  '
+        if is_sg350 == "true":
+            hostvars += 'vars.network_sg350 = "' + is_sg350 + '"' +'\n  '
+        if is_sx350 == "true" and not is_sg350 == "true":
+            hostvars += 'vars.network_sx350 = "' + is_sx350 + '"' +'\n  '
         if is_jex == "true":
             hostvars += 'vars.network_jex = "' + is_jex + '"' +'\n  '
         if is_jexge0 == "true":
@@ -1511,6 +1523,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
     is_esxg = "false"
     is_s1700 = "false"
     is_sg300 = "false"
+    is_sg350 = "false"
+    is_sx350 = "false"
     is_jex = "false"
     is_jexge0 = "false"
     is_jexge1 = "false"
@@ -1539,6 +1553,10 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             is_s1700 = line.split(' = ')[1].strip('"')
         if 'vars.network_sg300 = ' in line:
             is_sg300 = line.split(' = ')[1].strip('"')
+        if 'vars.network_sg350 = ' in line:
+            is_sg350 = line.split(' = ')[1].strip('"')
+        if 'vars.network_sx350 = ' in line:
+            is_sx350 = line.split(' = ')[1].strip('"')
         if 'vars.network_jex = ' in line:
             is_jex = line.split(' = ')[1].strip('"')
         if 'vars.network_jexge0 = ' in line:
@@ -1577,6 +1595,10 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             host_entry += '  import "s1700-int-{0}-ports-template"\n'.format(ifcount)
         elif is_sg300 == "true":
             host_entry += '  import "sg300-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_sg350 == "true":
+            host_entry += '  import "sg350-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_sx350 == "true":
+            host_entry += '  import "sx350-int-{0}-ports-template"\n'.format(ifcount)
         elif is_jexxe0 == "true":
             host_entry += '  import "jexxe0-int-{0}-ports-template"\n'.format(ifcount)
         elif is_jexxe1 == "true":
