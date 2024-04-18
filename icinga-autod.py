@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import util.checkpkg as checkpkg
 
-checkpkg.check(['nmap', 'snmp', 'net-snmp-utils'])
+#checkpkg.check(['nmap', 'snmp', 'net-snmp-utils'])
 
 import csv
 import os
