@@ -873,6 +873,7 @@ def compile_hosts(data, location, args):
         is_dgs3100s1 = "false"
         is_dgs3100s2 = "false"
         is_dgs3100s3 = "false"
+        is_ifnum_ifnames = "false"
         snmp_interface_ifalias = "false"
 
         desc_output = snmpwalk_get_tree(ip, hdata['snmp_version'], hdata['community'], '.1.3.6.1.2.1.2.2.1.2')
@@ -952,6 +953,8 @@ def compile_hosts(data, location, args):
                     if ifna.startswith('3:'):
                         is_dgs3100 = "true"
                         is_dgs3100s3 = "true"
+                    if ifna == "8" and ifno == 8:
+                        is_ifnum_ifnames = "true"
                     if ifde.startswith('Port #') and ifde == 'Port #'+ifal:
                         snmp_interface_ifalias = "true"
 
@@ -1344,6 +1347,9 @@ def compile_hosts(data, location, args):
             hostvars += 'vars.network_dgs3100s2 = "' + is_dgs3100s2 + '"' +'\n  '
         if is_dgs3100s3 == "true":
             hostvars += 'vars.network_dgs3100s3 = "' + is_dgs3100s3 + '"' +'\n  '
+        if is_ifnum_ifnames == "true":
+            hostvars += 'vars.network_ifnum_ifnames = "' + is_ifnum_ifnames + '"' +'\n  '
+
         if ifcount > 0:
             if iffirst < ifcount:
                 ifcount = ifcount - iffirst + 1
@@ -1477,6 +1483,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
         'img/icons/%s.gif',
     )
     icon_descriptors = {
+        'Aruba JL35': 'aruba',
+        'Aruba JL67': 'aruba',
         'HP 1810': 'hp',
         'OfficeConnect': 'hpe',
         'ProCurve': 'hp',
@@ -1509,6 +1517,9 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
         'Cisco Systems': 'cisco',
         'Dell Inc': 'dell',
         'D-Link Systems': 'dlink',
+        'Extreme Networks': 'extreme',
+        'Schneider Electric': 'schneider',
+        'Sophos': 'sophos',
         'Ubiquiti Networks': 'ubnt',
     }
     host_entry = ( 'object Host "%s" {\n'
@@ -1536,6 +1547,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
     is_dgs3100s1 = "false"
     is_dgs3100s2 = "false"
     is_dgs3100s3 = "false"
+    is_ifnum_ifnames = "false"
     is_switch = "false"
     ifcount = 0
     for line in linevars:
@@ -1579,6 +1591,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             is_dgs3100s2 = line.split(' = ')[1].strip('"')
         if 'vars.network_dgs3100s3 = ' in line:
             is_dgs3100s3 = line.split(' = ')[1].strip('"')
+        if 'vars.network_ifnum_ifnames = ' in line:
+            is_ifnum_ifnames = line.split(' = ')[1].strip('"')
         if 'vars.network_switch = ' in line:
             is_switch = line.split(' = ')[1].strip('"')
         if 'vars.network_ports = ' in line:
@@ -1617,6 +1631,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             host_entry += '  import "dgs3100s2-int-{0}-ports-template"\n'.format(ifcount)
         elif is_dgs3100s3 == "true":
             host_entry += '  import "dgs3100s3-int-{0}-ports-template"\n'.format(ifcount)
+        elif is_ifnum_ifnames == "true":
+            host_entry += '  import "ifnum-{0}-ports-template"\n'.format(ifcount)
         else:
             host_entry += '  import "int-{0}-ports-template"\n'.format(ifcount)
 
@@ -1768,6 +1784,8 @@ def parse_nmap_ssl_scan(data):
 def compile_hvars(sysdesc, devdesc):
     sys_descriptors = {
         'RouterOS': 'vars.network_mikrotik = "true"',
+        'Aruba JL35': 'vars.network_switch = "true"',
+        'Aruba JL67': 'vars.network_switch = "true"',
         'Baseline Switch': 'vars.network_switch = "true"',
         'Comware Platform': 'vars.network_switch = "true"',
         'HP 1810': 'vars.network_switch = "true"',
