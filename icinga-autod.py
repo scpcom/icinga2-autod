@@ -473,7 +473,7 @@ def get_vlan_desc(vlegre, vlunta, vlforb):
     return ed, ud, fd
 
 def skip_port(ifde, ifty, ifna, ifal):
-    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv', 'Bridge-Aggregation', 'oob']
+    port_filter = ['CPU', 'TRK', 'NULL', 'InLoopBack', 'Vlan', 'Console Port', 'Management Port', 'VLAN', '802.1Q Encapsulation', 'Stack Aggregated', 'rif0', 'vlan', 'Internal Interface', 'DEFAULT_VLAN', 'loopback interface', 'stack-port', 'xenbr', 'xapi', 'vlanMgmt', 'fwbr', 'fwln', 'fwpr', 'jsrv', 'Bridge-Aggregation', 'oob', 'sit', 'ifb', 'spu_us_dummy', 'spu_ds_dummy', 'ip6tnl', 'ip6gre', 'mgt', 'wifi0.', 'wifi1.', 'wifi2.', 'wifi3.']
     desc_filter = ['IP Interface']
     alias_filter = [' LightWeight Filter', 'QoS Packet Scheduler', 'WiFi Filter Driver', 'Kerneldebugger']
     # IANAifType-MIB
