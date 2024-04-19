@@ -1522,6 +1522,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
         'Cisco Systems': 'cisco',
         'Dell Inc': 'dell',
         'D-Link Systems': 'dlink',
+        'Aerohive Networks': 'extreme',
         'Extreme Networks': 'extreme',
         'Schneider Electric': 'schneider',
         'Sophos': 'sophos',
