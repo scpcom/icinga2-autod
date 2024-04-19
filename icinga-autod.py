@@ -868,6 +868,7 @@ def compile_hosts(data, location, args):
         is_jexxe0 = "false"
         is_jexxe1 = "false"
         is_hp1810v2 = "false"
+        is_hpe6100 = "false"
         is_des1210 = "false"
         is_dgs3100 = "false"
         is_dgs3100s1 = "false"
@@ -944,6 +945,8 @@ def compile_hosts(data, location, args):
                         is_hp1810v2 = "true"
                     if ifna.startswith('Slot0/'):
                         is_des1210 = "true"
+                    if ifna.startswith('1/1/') and not ifde.startswith('Huawei S'):
+                        is_hpe6100 = "true"
                     if ifna.startswith('1:'):
                         is_dgs3100 = "true"
                         is_dgs3100s1 = "true"
@@ -1337,6 +1340,8 @@ def compile_hosts(data, location, args):
             hostvars += 'vars.network_jexxe1 = "' + is_jexxe1 + '"' +'\n  '
         if is_hp1810v2 == "true":
             hostvars += 'vars.network_hp1810v2 = "' + is_hp1810v2 + '"' +'\n  '
+        if is_hpe6100 == "true":
+            hostvars += 'vars.network_hpe6100 = "' + is_hpe6100 + '"' +'\n  '
         if is_des1210 == "true":
             hostvars += 'vars.network_des1210 = "' + is_des1210 + '"' +'\n  '
         if is_dgs3100 == "true":
@@ -1542,6 +1547,7 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
     is_jexxe0 = "false"
     is_jexxe1 = "false"
     is_hp1810v2 = "false"
+    is_hpe6100 = "false"
     is_des1210 = "false"
     is_dgs3100 = "false"
     is_dgs3100s1 = "false"
@@ -1581,6 +1587,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             is_jexxe1 = line.split(' = ')[1].strip('"')
         if 'vars.network_hp1810v2 = ' in line:
             is_hp1810v2 = line.split(' = ')[1].strip('"')
+        if 'vars.network_hpe6100 = ' in line:
+            is_hpe6100 = line.split(' = ')[1].strip('"')
         if 'vars.network_des1210 = ' in line:
             is_des1210 = line.split(' = ')[1].strip('"')
         if 'vars.network_dgs3100 = ' in line:
@@ -1623,6 +1631,8 @@ def build_host_entry(hostname, ip, location, vendor, hostvars, hdata):
             host_entry += '  import "jexge1-int-{0}-ports-template"\n'.format(ifcount)
         elif is_hp1810v2 == "true":
             host_entry += '  import "hp1810v2-int-{0}-ports-template"\n'.format(ifcount)
+        if is_hpe6100 == "true":
+            host_entry += '  import "hpe6100-int-{0}-ports-template"\n'.format(ifcount)
         elif is_des1210 == "true":
             host_entry += '  import "des1210-int-{0}-ports-template"\n'.format(ifcount)
         elif is_dgs3100s1 == "true":
