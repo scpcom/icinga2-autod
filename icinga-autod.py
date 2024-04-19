@@ -179,8 +179,8 @@ def main():
             snmp_version = data['version']
 
             hostname = output[0].strip('"')
-            sysdesc = output[1].strip('"').strip('\r')
-            syslocation = output[-3].strip('"')
+            sysdesc = output[1].replace('\\"', '').strip('"').strip('\r')
+            syslocation = output[-3].replace('\\"', '').strip('"')
             sysobject = output[-2].strip('"') 
 
         except:
